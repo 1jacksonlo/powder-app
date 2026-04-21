@@ -1,0 +1,2879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Powder — US Ski Conditions</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white:#fff; --off:#f7f8fa; --pale:#eef1f6; --mist:#dde3ed;
+  --steel:#8a97aa; --slate:#4a5568; --ink:#1a202c;
+  --blue:#2563eb; --sky:#60a5fa; --frost:#bfdbfe;
+  --green:#16a34a; --amber:#d97706; --red:#dc2626;
+  --pro:#7c3aed; --pro-light:#ede9fe; --pro-mid:#8b5cf6;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  --shadow-md:0 4px 8px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.1);
+  --nav-h:60px; --bottom-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--off);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;padding-bottom:var(--bottom-h)}
+
+/* ─── TOP NAV ─── */
+.topnav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--pale);display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem}
+.nav-logo{font-family:'DM Sans',sans-serif;font-size:1.2rem;font-weight:600;letter-spacing:-.04em;color:var(--ink);display:flex;align-items:center;gap:.4rem}
+.nav-logo .flake{color:var(--blue);font-size:1rem}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.nav-pro-badge{font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--pro);color:#fff;padding:.2rem .55rem;border-radius:100px;cursor:pointer}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--pale);border:1px solid var(--mist);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:var(--slate)}
+
+/* ─── BOTTOM NAV ─── */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:var(--bottom-h);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--pale);display:flex;align-items:stretch;padding:0 .5rem;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;cursor:pointer;transition:color .15s;color:var(--steel);border:none;background:none;font-family:'DM Sans',sans-serif;padding:.5rem 0}
+.bnav-item.active{color:var(--blue)}
+.bnav-icon{font-size:1.2rem;line-height:1}
+.bnav-label{font-size:.58rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.bnav-item .pro-dot{width:5px;height:5px;border-radius:50%;background:var(--pro);position:absolute;top:6px;right:6px}
+
+/* ─── PAGES ─── */
+.page{display:none;min-height:calc(100vh - var(--nav-h) - var(--bottom-h));padding-top:calc(var(--nav-h) + 1rem)}
+.page.active{display:block}
+
+/* ─── SNOWFLAKES ─── */
+.sf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.flake-p{position:absolute;top:-20px;color:#c8d8ee;opacity:0;animation:snowfall linear infinite;user-select:none;font-size:.7em}
+@keyframes snowfall{0%{transform:translateY(0) rotate(0deg);opacity:0}5%{opacity:.7}95%{opacity:.3}100%{transform:translateY(105vh) translateX(15px) rotate(360deg);opacity:0}}
+
+/* ─── HERO (conditions page) ─── */
+.hero{position:relative;overflow:hidden;background:linear-gradient(165deg,#e8f0fe 0%,#f0f5ff 55%,var(--white) 100%);padding:1.5rem 1.25rem 0;margin-bottom:1rem}
+.hero-inner{position:relative;z-index:2;padding-bottom:110px}
+.eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-size:.6rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--blue);background:rgba(37,99,235,.08);padding:.25rem .75rem;border-radius:100px;margin-bottom:.8rem}
+.hero-title{font-size:clamp(2rem,7vw,3.5rem);font-weight:300;letter-spacing:-.04em;line-height:.95;color:var(--ink)}
+.hero-title em{font-style:normal;color:var(--blue)}
+.hero-sub{font-size:.78rem;color:var(--steel);margin-top:.6rem}
+.mountains{position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none}
+
+/* ─── STATS STRIP ─── */
+.stats-strip{display:flex;overflow-x:auto;gap:0;background:var(--white);border-bottom:1px solid var(--pale);border-top:1px solid var(--pale);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.stats-strip::-webkit-scrollbar{display:none}
+.stat-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;padding:1rem 1.4rem;border-right:1px solid var(--pale);white-space:nowrap}
+.stat-n{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:400;line-height:1;color:var(--ink);letter-spacing:-.02em}
+.stat-n .u{font-size:.8rem;color:var(--steel)}
+.stat-d{font-size:.58rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--steel);margin-top:.2rem}
+
+/* ─── TOOLBAR ─── */
+.toolbar{background:var(--white);border-bottom:1px solid var(--pale);padding:.75rem 1.25rem}
+.search-row{display:flex;gap:.6rem;margin-bottom:.6rem}
+.search-wrap{position:relative;flex:1}
+.search-wrap input{width:100%;padding:.45rem .9rem .45rem 2rem;border:1px solid var(--mist);border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink);background:var(--off);outline:none;transition:all .15s}
+.search-wrap input:focus{background:var(--white);border-color:var(--sky);box-shadow:0 0 0 3px rgba(96,165,250,.15)}
+.search-icon{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--steel)}
+.sort-btn{display:flex;align-items:center;gap:.3rem;padding:.45rem .9rem;border:1px solid var(--mist);border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--slate);background:var(--off);cursor:pointer;white-space:nowrap;transition:all .15s}
+.sort-btn:hover{border-color:var(--sky);color:var(--blue)}
+.filter-scroll{display:flex;gap:.35rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.filter-scroll::-webkit-scrollbar{display:none}
+.fbtn{flex:0 0 auto;background:var(--off);border:1px solid var(--mist);color:var(--slate);padding:.28rem .8rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.68rem;cursor:pointer;transition:all .15s;white-space:nowrap}
+.fbtn:hover{border-color:var(--sky);color:var(--blue)}
+.fbtn.active{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:500}
+.upd-row{display:flex;justify-content:flex-end;margin-top:.5rem}
+.upd{font-size:.62rem;color:var(--steel)}
+
+/* ─── RESORT SECTIONS ─── */
+.content-area{padding:.75rem 1rem 1rem;max-width:1400px;margin:0 auto}
+.region-sec{margin-bottom:1.5rem}
+.region-hdr{display:flex;align-items:center;gap:.75rem;margin-bottom:.8rem;padding:0 .25rem}
+.region-title{font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--slate)}
+.region-line{flex:1;height:1px;background:var(--pale)}
+.region-ct{font-size:.6rem;color:var(--steel)}
+.resort-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+
+/* ─── CARD ─── */
+.card{background:var(--white);border:1px solid var(--pale);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;animation:rise .4s ease both}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cbar{height:3px}
+.cbar-open{background:linear-gradient(90deg,#3b82f6,#93c5fd)}
+.cbar-partial{background:linear-gradient(90deg,#f59e0b,#fcd34d)}
+.cbar-closed{background:var(--mist)}
+.card-head{padding:.9rem 1.1rem .7rem;display:flex;justify-content:space-between;align-items:flex-start}
+.rname{font-size:.95rem;font-weight:500;letter-spacing:-.02em;color:var(--ink);line-height:1.2}
+.rmeta{display:flex;align-items:center;gap:.35rem;margin-top:.22rem;flex-wrap:wrap}
+.state-tag{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--steel)}
+.ptag{font-size:.52rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:.07rem .35rem;border-radius:4px}
+.ptag-epic{background:#fef3c7;color:#92400e}
+.ptag-ikon{background:#ede9fe;color:#5b21b6}
+.badge{display:inline-flex;align-items:center;gap:.22rem;font-size:.56rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.18rem .5rem;border-radius:100px;white-space:nowrap}
+.badge-open{background:#dcfce7;color:var(--green)}
+.badge-partial{background:#fef3c7;color:var(--amber)}
+.badge-closed{background:#fee2e2;color:var(--red)}
+.bdot{width:4px;height:4px;border-radius:50%;background:currentColor}
+.sep{height:1px;background:var(--pale);margin:0 1.1rem}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);padding:.7rem .25rem}
+.metric{text-align:center;padding:.35rem .1rem;position:relative}
+.metric+.metric::before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:1px;background:var(--pale)}
+.mv{font-family:'DM Mono',monospace;font-size:1.45rem;font-weight:400;line-height:1;color:var(--ink);letter-spacing:-.02em}
+.mv .u{font-size:.75rem;font-weight:300;color:var(--steel)}
+.mv.hi{color:var(--blue)}
+.ml{font-size:.54rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);margin-top:.15rem}
+.basebar{padding:.2rem 1.1rem .75rem}
+.blabels{display:flex;justify-content:space-between;margin-bottom:.3rem}
+.blabels span{font-size:.56rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--steel)}
+.blabels .s{font-weight:400;color:var(--slate)}
+.btrack{height:4px;background:var(--pale);border-radius:10px;overflow:hidden}
+.bfill{height:100%;border-radius:10px;background:linear-gradient(90deg,#93c5fd,#2563eb);transition:width 1s cubic-bezier(.16,1,.3,1)}
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.1rem .75rem;gap:.5rem}
+.lts{display:flex;gap:.7rem}
+.lt{display:flex;align-items:center;gap:.22rem;font-size:.65rem;color:var(--slate)}
+.ln{font-weight:600;color:var(--ink)}
+.cpill{font-size:.54rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .4rem;border-radius:100px;border:1px solid}
+.cond-powder{color:#1d4ed8;border-color:#93c5fd;background:#eff6ff}
+.cond-packed{color:#374151;border-color:#d1d5db;background:#f9fafb}
+.cond-groomed{color:#166534;border-color:#86efac;background:#f0fdf4}
+.cond-icy{color:#0369a1;border-color:#7dd3fc;background:#f0f9ff}
+.tempb{font-size:.62rem;color:var(--steel)}
+
+/* watchlist heart */
+.heart-btn{background:none;border:none;cursor:pointer;font-size:1rem;padding:.1rem;transition:transform .15s;line-height:1}
+.heart-btn:active{transform:scale(1.3)}
+
+/* cam row */
+.cam-row{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1.1rem;border-top:1px solid var(--pale);background:var(--off)}
+.cam-tbtn{display:inline-flex;align-items:center;gap:.28rem;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);background:none;border:none;cursor:pointer;transition:color .15s}
+.cam-tbtn:hover{color:var(--blue)}
+.cam-arr{font-size:.56rem;display:inline-block;transition:transform .3s}
+.cam-tbtn.open .cam-arr{transform:rotate(180deg)}
+.cam-link{font-size:.6rem;font-weight:500;color:var(--blue);text-decoration:none}
+.cam-drawer{height:0;overflow:hidden;transition:height .35s cubic-bezier(.16,1,.3,1)}
+.cam-drawer.open{height:150px}
+.cam-inner{height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.65rem;background:linear-gradient(135deg,#eef3fd,#e4ecfa);position:relative;overflow:hidden}
+.cam-inner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 10px,rgba(37,99,235,.025) 10px,rgba(37,99,235,.025) 20px)}
+.cam-lens{width:44px;height:44px;border-radius:50%;background:rgba(37,99,235,.06);border:2px solid rgba(37,99,235,.12);display:flex;align-items:center;justify-content:center;position:relative}
+.cam-lens::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,.08);border:2px solid rgba(37,99,235,.15);animation:pcam 2s ease infinite}
+@keyframes pcam{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.5}}
+.cam-note{font-size:.62rem;color:var(--slate);text-align:center;padding:0 1.5rem;line-height:1.5;position:relative}
+.cam-vbtn{display:inline-flex;align-items:center;gap:.3rem;font-family:'DM Sans',sans-serif;font-size:.62rem;font-weight:500;color:var(--blue);text-decoration:none;padding:.3rem .8rem;border:1px solid var(--frost);border-radius:100px;background:white;transition:all .15s;position:relative}
+.cam-vbtn:hover{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* ─── PRO GATE ─── */
+.pro-gate{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #ddd6fe;border-radius:12px;padding:1.25rem;text-align:center;margin:.5rem 0}
+.pro-gate .lock{font-size:1.4rem;margin-bottom:.5rem}
+.pro-gate h4{font-size:.85rem;font-weight:500;color:var(--ink);margin-bottom:.3rem}
+.pro-gate p{font-size:.72rem;color:var(--slate);line-height:1.5;margin-bottom:.8rem}
+.pro-btn{display:inline-flex;align-items:center;gap:.4rem;background:var(--pro);color:white;border:none;padding:.5rem 1.25rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s}
+.pro-btn:hover{background:#6d28d9;transform:translateY(-1px)}
+
+/* ─── WATCHLIST PAGE ─── */
+.page-header{padding:1.25rem 1.25rem .75rem}
+.page-title{font-size:1.4rem;font-weight:300;letter-spacing:-.03em;color:var(--ink)}
+.page-title em{font-style:normal;color:var(--blue)}
+.page-sub{font-size:.75rem;color:var(--steel);margin-top:.25rem}
+.empty-state{text-align:center;padding:3rem 2rem}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.4}
+.empty-msg{font-size:.85rem;color:var(--steel)}
+.empty-hint{font-size:.72rem;color:var(--steel);opacity:.7;margin-top:.3rem}
+
+/* ─── FORECAST PAGE (Pro) ─── */
+.forecast-search{padding:1rem 1.25rem}
+.forecast-search input{width:100%;padding:.55rem 1rem;border:1px solid var(--mist);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);background:var(--white);outline:none}
+.forecast-search input:focus{border-color:var(--sky)}
+.forecast-list{padding:0 1.25rem}
+.forecast-resort-btn{width:100%;text-align:left;padding:.75rem 1rem;border:1px solid var(--pale);border-radius:12px;margin-bottom:.5rem;background:var(--white);font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+.forecast-resort-btn:hover{border-color:var(--sky);background:var(--off)}
+.frb-name{font-size:.88rem;font-weight:500;color:var(--ink)}
+.frb-meta{font-size:.65rem;color:var(--steel)}
+.frb-arrow{color:var(--steel);font-size:.8rem}
+.forecast-panel{background:var(--white);border:1px solid var(--pale);border-radius:16px;margin:0 1.25rem 1rem;overflow:hidden;box-shadow:var(--shadow)}
+.forecast-panel-head{padding:1rem 1.1rem .75rem;border-bottom:1px solid var(--pale)}
+.forecast-panel-title{font-size:1rem;font-weight:500;color:var(--ink)}
+.forecast-panel-sub{font-size:.65rem;color:var(--steel);margin-top:.15rem}
+.forecast-days{display:flex;overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.forecast-days::-webkit-scrollbar{display:none}
+.fday{flex:0 0 auto;width:90px;padding:.75rem .5rem;text-align:center;border-right:1px solid var(--pale)}
+.fday:last-child{border-right:none}
+.fday-name{font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-bottom:.3rem}
+.fday-icon{font-size:1.2rem;margin-bottom:.3rem}
+.fday-snow{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:400;color:var(--blue);line-height:1}
+.fday-snow .fu{font-size:.65rem;color:var(--steel)}
+.fday-label{font-size:.54rem;color:var(--steel);margin-top:.1rem}
+.fday-temp{font-size:.65rem;color:var(--slate);margin-top:.3rem}
+.forecast-summary{padding:.75rem 1.1rem;background:var(--off);border-top:1px solid var(--pale);font-size:.72rem;color:var(--slate);line-height:1.5}
+.forecast-summary strong{color:var(--ink);font-weight:500}
+
+/* ─── TRIP PLANNER WIZARD ─── */
+.wiz-wrap{padding:0 0 2rem}
+.wiz-progress{display:flex;align-items:center;padding:.9rem 1.25rem .5rem;gap:.35rem}
+.wiz-step-dot{width:28px;height:4px;border-radius:4px;background:var(--pale);transition:background .3s;flex-shrink:0}
+.wiz-step-dot.done{background:var(--blue)}
+.wiz-step-dot.active{background:var(--blue);opacity:.4}
+.wiz-step-label{font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin-left:auto}
+.wiz-panel{padding:1.25rem 1.25rem .5rem;animation:rise .25s ease both}
+.wiz-q{font-size:1.15rem;font-weight:400;letter-spacing:-.02em;color:var(--ink);margin-bottom:.25rem;line-height:1.3}
+.wiz-hint{font-size:.72rem;color:var(--steel);margin-bottom:1rem;line-height:1.4}
+.wiz-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem}
+.wiz-chip{font-family:'DM Sans',sans-serif;font-size:.8rem;padding:.45rem 1rem;border:1.5px solid var(--mist);border-radius:100px;background:var(--white);color:var(--slate);cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:.4rem}
+.wiz-chip:hover{border-color:var(--sky);color:var(--blue)}
+.wiz-chip.sel{border-color:var(--blue);background:var(--blue);color:#fff;font-weight:500}
+.wiz-chip.multi.sel{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+.wiz-date-row{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.75rem}
+.wiz-date-box{background:var(--white);border:1.5px solid var(--mist);border-radius:12px;padding:.65rem .9rem;cursor:pointer;transition:border-color .15s}
+.wiz-date-box.sel{border-color:var(--blue)}
+.wiz-date-label{font-size:.55rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin-bottom:.25rem}
+.wiz-date-val{font-family:'DM Mono',monospace;font-size:.9rem;color:var(--ink)}
+.wiz-date-input{width:100%;border:none;outline:none;font-family:'DM Mono',monospace;font-size:.9rem;color:var(--ink);background:transparent;cursor:pointer}
+.wiz-member-card{background:var(--white);border:1.5px solid var(--pale);border-radius:12px;padding:.75rem 1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.75rem}
+.wiz-member-emoji{font-size:1.4rem;flex-shrink:0}
+.wiz-member-info{flex:1}
+.wiz-member-name{font-size:.82rem;font-weight:500;color:var(--ink);margin-bottom:.15rem}
+.wiz-member-skill{font-size:.65rem;color:var(--steel)}
+.wiz-member-remove{background:none;border:none;color:var(--steel);cursor:pointer;font-size:1rem;padding:.2rem}
+.wiz-add-btn{width:100%;padding:.5rem;border:1.5px dashed var(--mist);border-radius:12px;background:none;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--slate);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .15s;margin-bottom:.75rem}
+.wiz-add-btn:hover{border-color:var(--sky);color:var(--blue)}
+.wiz-nav{display:flex;gap:.6rem;padding:.5rem 1.25rem 1rem}
+.wiz-back{flex:0 0 auto;padding:.55rem 1.1rem;background:var(--off);border:1px solid var(--mist);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--slate);cursor:pointer;transition:all .15s}
+.wiz-next{flex:1;padding:.6rem;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .15s}
+.wiz-next:hover{background:#1d4ed8}
+.wiz-next:disabled{background:var(--mist);cursor:not-allowed}
+/* Results */
+.wiz-results{padding:.5rem 1.25rem 2rem;animation:rise .3s ease both}
+.wiz-top-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid var(--frost);border-radius:20px;padding:1.25rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.wiz-top-label{font-size:.58rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+.wiz-top-name{font-size:1.5rem;font-weight:500;letter-spacing:-.03em;color:var(--ink);margin-bottom:.2rem}
+.wiz-top-state{font-size:.72rem;color:var(--slate);margin-bottom:.8rem}
+.wiz-top-stats{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.9rem}
+.wiz-stat-pill{display:inline-flex;align-items:center;gap:.3rem;background:rgba(255,255,255,.7);border:1px solid rgba(37,99,235,.12);border-radius:100px;padding:.22rem .65rem;font-size:.68rem;color:var(--slate);white-space:nowrap}
+.wiz-stat-pill strong{color:var(--ink);font-weight:600}
+.wiz-top-reason{font-size:.75rem;color:var(--slate);line-height:1.6;margin-bottom:.9rem}
+.wiz-top-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.wiz-action-btn{display:inline-flex;align-items:center;gap:.3rem;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;padding:.38rem .85rem;border-radius:100px;border:1.5px solid;cursor:pointer;transition:all .15s;text-decoration:none}
+.wiz-action-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.wiz-action-primary:hover{background:#1d4ed8}
+.wiz-action-sec{background:#fff;color:var(--blue);border-color:var(--frost)}
+.wiz-action-sec:hover{background:#eff6ff}
+/* Itinerary */
+.wiz-itinerary{background:var(--white);border:1px solid var(--pale);border-radius:16px;overflow:hidden;margin-bottom:1rem;box-shadow:var(--shadow)}
+.wiz-itin-head{padding:.75rem 1rem;background:var(--off);border-bottom:1px solid var(--pale);font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);display:flex;align-items:center;gap:.4rem}
+.wiz-itin-row{display:flex;align-items:flex-start;gap:.75rem;padding:.7rem 1rem;border-bottom:1px solid var(--pale)}
+.wiz-itin-row:last-child{border-bottom:none}
+.wiz-itin-time{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--steel);width:52px;flex-shrink:0;padding-top:.1rem}
+.wiz-itin-icon{font-size:1rem;flex-shrink:0;width:22px;text-align:center}
+.wiz-itin-text{flex:1}
+.wiz-itin-main{font-size:.8rem;font-weight:500;color:var(--ink);line-height:1.3}
+.wiz-itin-sub{font-size:.65rem;color:var(--steel);margin-top:.1rem;line-height:1.4}
+/* Comparison */
+.wiz-compare{display:flex;gap:.6rem;overflow-x:auto;padding-bottom:.25rem;margin-bottom:1rem;scrollbar-width:none}
+.wiz-compare::-webkit-scrollbar{display:none}
+.wiz-cmp-card{flex:0 0 200px;background:var(--white);border:1.5px solid var(--pale);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:border-color .15s;cursor:pointer}
+.wiz-cmp-card.pick1{border-color:var(--blue)}
+.wiz-cmp-card:hover{border-color:var(--sky)}
+.wiz-cmp-head{padding:.65rem .8rem .5rem;border-bottom:1px solid var(--pale)}
+.wiz-cmp-rank{font-size:.52rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:.15rem}
+.wiz-cmp-name{font-size:.88rem;font-weight:500;color:var(--ink);line-height:1.2;margin-bottom:.1rem}
+.wiz-cmp-state{font-size:.6rem;color:var(--steel)}
+.wiz-cmp-body{padding:.6rem .8rem}
+.wiz-cmp-row{display:flex;justify-content:space-between;align-items:center;padding:.22rem 0;border-bottom:1px solid var(--pale);font-size:.65rem}
+.wiz-cmp-row:last-child{border-bottom:none}
+.wiz-cmp-label{color:var(--steel)}
+.wiz-cmp-val{font-weight:500;color:var(--ink);font-family:'DM Mono',monospace;font-size:.68rem}
+.wiz-cmp-val.good{color:var(--green)}
+.wiz-cmp-val.warn{color:var(--amber)}
+.wiz-snow-bar{height:3px;border-radius:3px;margin-top:.15rem;background:linear-gradient(90deg,#93c5fd,#2563eb)}
+/* Forecast strip on results */
+.wiz-fc-strip{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none;padding:.6rem .8rem;border-top:1px solid var(--pale)}
+.wiz-fc-strip::-webkit-scrollbar{display:none}
+.wiz-fc-day{flex:0 0 auto;text-align:center;min-width:38px}
+.wiz-fc-day-name{font-size:.5rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:.12rem}
+.wiz-fc-icon{font-size:.85rem;line-height:1;margin-bottom:.1rem}
+.wiz-fc-snow{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--blue);line-height:1}
+.wiz-fc-snow.dry{color:var(--steel)}
+/* Loading */
+.wiz-loading{text-align:center;padding:2.5rem 1.25rem}
+.wiz-loading-icon{font-size:2rem;animation:spin 3s linear infinite;display:block;margin-bottom:.75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wiz-loading-label{font-size:.78rem;color:var(--steel);animation:blink 1.5s ease infinite}
+.wiz-loading-steps{margin-top:1rem;text-align:left;max-width:240px;margin-left:auto;margin-right:auto}
+.wiz-loading-step{font-size:.65rem;color:var(--steel);padding:.25rem 0;display:flex;align-items:center;gap:.4rem;opacity:.4;transition:opacity .3s}
+.wiz-loading-step.active{opacity:1;color:var(--blue)}
+.wiz-loading-step.done{opacity:.6}
+.wiz-restart{width:100%;padding:.55rem;background:var(--off);border:1px solid var(--mist);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--slate);cursor:pointer;margin-top:.75rem;transition:all .15s}
+.wiz-restart:hover{border-color:var(--sky);color:var(--blue)}
+
+/* ─── POWDER ALERTS ─── */
+.alerts-section{padding:1rem 1.25rem}
+.alert-card{background:var(--white);border:1px solid var(--pale);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.75rem;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:.8rem}
+.alert-icon{font-size:1.4rem;flex-shrink:0}
+.alert-body h4{font-size:.85rem;font-weight:500;color:var(--ink);margin-bottom:.2rem}
+.alert-body p{font-size:.72rem;color:var(--slate);line-height:1.4}
+.alert-time{font-size:.6rem;color:var(--steel);margin-top:.3rem}
+.alert-new{display:inline-block;font-size:.52rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:#dcfce7;color:var(--green);padding:.1rem .4rem;border-radius:4px;margin-left:.4rem}
+
+.threshold-row{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:1px solid var(--pale);border-radius:12px;padding:.75rem 1rem;margin-bottom:.75rem}
+.threshold-label{font-size:.78rem;font-weight:400;color:var(--ink)}
+.threshold-sub{font-size:.63rem;color:var(--steel);margin-top:.1rem}
+.threshold-select{font-family:'DM Mono',monospace;font-size:.78rem;border:1px solid var(--mist);border-radius:8px;padding:.3rem .5rem;color:var(--ink);background:var(--off);outline:none;cursor:pointer}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:1px solid var(--pale);border-radius:12px;padding:.75rem 1rem;margin-bottom:.75rem}
+.toggle-label{font-size:.78rem;color:var(--ink)}
+.toggle{position:relative;width:40px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--mist);border-radius:22px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked + .toggle-slider{background:var(--blue)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(18px)}
+
+/* ─── PRICING MODAL ─── */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:1.5rem 1.5rem 2rem;transform:translateY(40px);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--mist);border-radius:4px;margin:0 auto 1.25rem}
+.modal-title{font-size:1.2rem;font-weight:500;letter-spacing:-.03em;color:var(--ink);text-align:center;margin-bottom:.25rem}
+.modal-sub{font-size:.75rem;color:var(--steel);text-align:center;margin-bottom:1.25rem}
+.price-toggle{display:flex;background:var(--off);border-radius:100px;padding:.2rem;margin-bottom:1.25rem}
+.price-toggle-btn{flex:1;padding:.4rem;border-radius:100px;border:none;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;transition:all .2s;background:none;color:var(--slate)}
+.price-toggle-btn.active{background:var(--white);color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.save-badge{display:inline-block;font-size:.54rem;font-weight:600;background:#dcfce7;color:var(--green);padding:.1rem .4rem;border-radius:4px;margin-left:.35rem;vertical-align:middle}
+.plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.plan-card{border:2px solid var(--pale);border-radius:16px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.plan-card.selected{border-color:var(--pro);background:var(--pro-light)}
+.plan-card-name{font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin-bottom:.4rem}
+.plan-card.selected .plan-card-name{color:var(--pro)}
+.plan-price{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:400;color:var(--ink);line-height:1}
+.plan-price .pu{font-size:.75rem;font-weight:300;color:var(--steel)}
+.plan-period{font-size:.62rem;color:var(--steel);margin-top:.15rem}
+.plan-best{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--pro);color:white;font-size:.54rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .6rem;border-radius:100px;white-space:nowrap}
+.feature-list{margin-bottom:1.25rem}
+.feat-row{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--pale);font-size:.75rem;color:var(--slate)}
+.feat-row:last-child{border-bottom:none}
+.feat-check{color:var(--pro);font-size:.85rem}
+.cta-btn{width:100%;padding:.75rem;background:var(--pro);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:.6rem}
+.cta-btn:hover{background:#6d28d9}
+.modal-close{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;font-size:1.2rem;color:var(--steel);cursor:pointer}
+.modal-legal{font-size:.6rem;color:var(--steel);text-align:center}
+
+/* ─── PROGRESS BAR ─── */
+.progress{position:fixed;top:0;left:0;height:2px;background:var(--blue);z-index:300;transition:width .3s;width:0;pointer-events:none}
+
+/* ─── LOADER ─── */
+.loader{position:fixed;inset:0;background:var(--white);z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s}
+.loader.gone{opacity:0;pointer-events:none}
+.loader-icon{font-size:2rem;color:#93c5fd;animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-label{margin-top:1rem;font-size:.68rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);animation:blink 1.5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.loader-sub{margin-top:.4rem;font-size:.62rem;color:var(--steel);opacity:.6}
+
+/* ─── FAB ─── */
+.fab{position:fixed;bottom:calc(var(--bottom-h) + 1rem);right:1rem;z-index:100;background:var(--ink);color:white;border:none;width:46px;height:46px;border-radius:50%;font-size:1.05rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:all .2s}
+.fab:hover{background:var(--blue);transform:scale(1.08) rotate(20deg)}
+
+/* ─── FORECAST MINI STRIP on card ─── */
+.card-forecast{border-top:1px solid var(--pale);padding:.6rem 1.1rem .75rem;background:var(--off)}
+.card-forecast-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.card-forecast-label{font-size:.58rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pro);display:flex;align-items:center;gap:.3rem}
+.card-forecast-unlock{font-size:.58rem;color:var(--pro);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.mini-days{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none}
+.mini-days::-webkit-scrollbar{display:none}
+.mini-day{flex:0 0 auto;text-align:center;background:var(--white);border:1px solid var(--pale);border-radius:8px;padding:.35rem .45rem;min-width:44px}
+.mini-day-name{font-size:.5rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-bottom:.2rem}
+.mini-day-icon{font-size:.85rem;line-height:1;margin-bottom:.15rem}
+.mini-day-snow{font-family:'DM Mono',monospace;font-size:.75rem;font-weight:400;color:var(--blue);line-height:1}
+.mini-day-snow.no-snow{color:var(--steel)}
+.mini-day-in{font-size:.45rem;color:var(--steel)}
+.forecast-blur-wrap{position:relative;overflow:hidden;border-radius:8px}
+.forecast-blur-overlay{position:absolute;inset:0;backdrop-filter:blur(4px);background:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;border-radius:8px}
+.forecast-unlock-btn{display:inline-flex;align-items:center;gap:.3rem;background:var(--pro);color:#fff;border:none;padding:.3rem .75rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.62rem;font-weight:500;cursor:pointer;white-space:nowrap}
+
+/* ─── FORECAST PAGE enhanced ─── */
+.forecast-hero{background:linear-gradient(135deg,#f5f3ff,#ede9fe);padding:1rem 1.25rem 1.25rem;border-bottom:1px solid #ddd6fe}
+.forecast-hero-title{font-size:1.3rem;font-weight:300;letter-spacing:-.03em;color:var(--ink);margin-bottom:.25rem}
+.forecast-hero-title em{font-style:normal;color:var(--pro)}
+.forecast-hero-sub{font-size:.72rem;color:#6d28d9;opacity:.8}
+.forecast-search-wrap{position:relative;margin:1rem 1.25rem .5rem}
+.forecast-search-wrap input{width:100%;padding:.5rem 1rem .5rem 2.2rem;border:1px solid #ddd6fe;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);background:var(--white);outline:none;transition:all .15s}
+.forecast-search-wrap input:focus{border-color:var(--pro);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.forecast-search-icon{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--steel)}
+.fc-resort-list{padding:0 1.25rem;max-height:45vh;overflow-y:auto}
+.fc-resort-item{display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border:1px solid var(--pale);border-radius:12px;margin-bottom:.4rem;background:var(--white);cursor:pointer;transition:all .15s;gap:.75rem}
+.fc-resort-item:hover{border-color:#c4b5fd;background:#faf5ff}
+.fc-resort-item:active{transform:scale(.99)}
+.fc-resort-left{flex:1}
+.fc-resort-name{font-size:.88rem;font-weight:500;color:var(--ink)}
+.fc-resort-meta{font-size:.62rem;color:var(--steel);margin-top:.1rem}
+.fc-resort-snow{text-align:right}
+.fc-snow-num{font-family:'DM Mono',monospace;font-size:1rem;color:var(--blue);line-height:1}
+.fc-snow-label{font-size:.52rem;color:var(--steel);text-transform:uppercase;letter-spacing:.1em}
+.fc-panel{margin:0 1.25rem 1rem;background:var(--white);border:1px solid var(--pale);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+.fc-panel-head{padding:1rem 1.1rem .8rem;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;display:flex;align-items:flex-start;justify-content:space-between}
+.fc-back{background:none;border:none;color:var(--pro);font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.25rem;font-family:'DM Sans',sans-serif;margin-bottom:.5rem;padding:0}
+.fc-panel-name{font-size:1.05rem;font-weight:500;color:var(--ink)}
+.fc-panel-meta{font-size:.65rem;color:#6d28d9;margin-top:.15rem}
+.fc-panel-base{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:400;color:var(--pro);line-height:1}
+.fc-panel-base-label{font-size:.55rem;color:#6d28d9;text-transform:uppercase;letter-spacing:.12em;margin-top:.1rem}
+.fc-days-scroll{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--pale)}
+.fc-days-scroll::-webkit-scrollbar{display:none}
+.fc-day{flex:0 0 auto;width:86px;padding:.8rem .5rem;text-align:center;border-right:1px solid var(--pale);transition:background .15s;cursor:pointer}
+.fc-day:last-child{border-right:none}
+.fc-day:hover{background:var(--off)}
+.fc-day.selected{background:#f5f3ff}
+.fc-day-name{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin-bottom:.3rem}
+.fc-day-icon{font-size:1.4rem;margin-bottom:.3rem}
+.fc-day-snow{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:400;line-height:1}
+.fc-day-snow.powder{color:var(--blue)}
+.fc-day-snow.none{color:var(--steel)}
+.fc-day-snow-label{font-size:.52rem;color:var(--steel);margin-top:.1rem}
+.fc-day-temps{font-size:.6rem;color:var(--slate);margin-top:.25rem}
+.fc-detail{padding:.9rem 1.1rem;border-bottom:1px solid var(--pale)}
+.fc-detail-title{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:.5rem}
+.fc-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.fc-detail-item{background:var(--off);border-radius:10px;padding:.5rem;text-align:center}
+.fc-detail-val{font-family:'DM Mono',monospace;font-size:1rem;color:var(--ink)}
+.fc-detail-label{font-size:.52rem;color:var(--steel);text-transform:uppercase;letter-spacing:.1em;margin-top:.15rem}
+.fc-summary{padding:.75rem 1.1rem;background:var(--off);font-size:.72rem;color:var(--slate);line-height:1.6}
+.fc-summary strong{color:var(--ink);font-weight:500}
+.fc-powder-alert{margin:.75rem 1.1rem;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid var(--frost);border-radius:12px;padding:.65rem .9rem;display:flex;align-items:center;gap:.6rem}
+.fc-powder-alert-icon{font-size:1.1rem}
+.fc-powder-alert-text{font-size:.7rem;color:#1d4ed8;line-height:1.4}
+.fc-powder-alert-text strong{font-weight:500}
+
+/* ─── DRIVE TIME ─── */
+.drive-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1.1rem;border-top:1px solid var(--pale);background:var(--off);gap:.5rem}
+.drive-left{display:flex;align-items:center;gap:.45rem;flex:1;min-width:0}
+.drive-icon{font-size:.9rem;flex-shrink:0}
+.drive-info{min-width:0}
+.drive-time{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:400;color:var(--ink);line-height:1;white-space:nowrap}
+.drive-sublabel{font-size:.55rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-top:.1rem}
+.drive-chain{display:inline-flex;align-items:center;gap:.2rem;font-size:.56rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .45rem;border-radius:100px;white-space:nowrap;flex-shrink:0}
+.chain-required{background:#fee2e2;color:var(--red);border:1px solid #fca5a5}
+.chain-advisory{background:#fef3c7;color:var(--amber);border:1px solid #fcd34d}
+.chain-none{background:#dcfce7;color:var(--green);border:1px solid #86efac}
+.drive-load-btn{font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:500;color:var(--blue);background:none;border:none;cursor:pointer;white-space:nowrap;flex-shrink:0;padding:.2rem 0}
+.drive-load-btn:hover{text-decoration:underline}
+.drive-verdict{padding:.55rem 1.1rem .6rem;border-top:1px solid var(--pale);background:var(--white)}
+.verdict-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.verdict-badge{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.18rem .55rem;border-radius:100px}
+.verdict-strong-yes{background:#dcfce7;color:var(--green)}
+.verdict-yes{background:#dbeafe;color:var(--blue)}
+.verdict-borderline{background:#fef3c7;color:var(--amber)}
+.verdict-probably-not{background:#fee2e2;color:var(--red)}
+.verdict-headline{font-size:.78rem;font-weight:500;color:var(--ink);line-height:1.3;flex:1}
+.verdict-details{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.verdict-col-label{font-size:.54rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-bottom:.15rem}
+.verdict-item{font-size:.65rem;color:var(--slate);line-height:1.4;display:flex;align-items:flex-start;gap:.25rem}
+.verdict-item::before{content:'·';color:var(--steel);flex-shrink:0}
+.verdict-tip{font-size:.65rem;color:var(--blue);padding-top:.35rem;border-top:1px solid var(--pale);margin-top:.35rem;line-height:1.4}
+.drive-pro-lock{display:flex;align-items:center;justify-content:space-between;gap:.4rem;font-size:.6rem;color:var(--steel)}
+.drive-pro-lock span{color:var(--pro);cursor:pointer;font-weight:500}
+.drive-loading{font-size:.62rem;color:var(--steel);animation:blink 1.5s ease infinite}
+.best-badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.54rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(135deg,#fef9c3,#fef08a);color:#854d0e;padding:.15rem .5rem;border-radius:100px;border:1px solid #fde047}
+
+/* ─── RESPONSIVE ─── */
+@media(min-width:640px){
+  .resort-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .plan-cards{grid-template-columns:1fr 1fr}
+  .modal{border-radius:24px;margin-bottom:2rem}
+  .modal-overlay{align-items:center}
+}
+@media(min-width:1024px){
+  .resort-grid{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- snowflakes -->
+<div class="sf" id="sf"></div>
+<!-- progress -->
+<div class="progress" id="prog"></div>
+<!-- loader -->
+<div class="loader" id="loader">
+  <div class="loader-icon">❄</div>
+  <div class="loader-label">Fetching Conditions</div>
+  <div class="loader-sub" id="loaderSub">Loading resorts across the US…</div>
+</div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo"><span class="flake">❄</span> powder</div>
+  <div class="nav-right">
+    <div class="nav-pro-badge" onclick="openModal()">Go Pro</div>
+    <div class="nav-avatar" id="navAvatar">👤</div>
+  </div>
+</nav>
+
+<!-- BOTTOM NAV -->
+<nav class="bottomnav">
+  <button class="bnav-item active" onclick="showPage('conditions',this)">
+    <span class="bnav-icon">🏔</span><span class="bnav-label">Conditions</span>
+  </button>
+  <button class="bnav-item" onclick="showPage('watchlist',this)">
+    <span class="bnav-icon">❤️</span><span class="bnav-label">Watchlist</span>
+  </button>
+  <button class="bnav-item" onclick="showProPage('forecast',this)">
+    <span class="bnav-icon">📅</span><span class="bnav-label">Forecast</span>
+  </button>
+  <button class="bnav-item" onclick="showProPage('planner',this)">
+    <span class="bnav-icon">✈️</span><span class="bnav-label">Trip</span>
+  </button>
+  <button class="bnav-item" onclick="showProPage('alerts',this)">
+    <span class="bnav-icon">🔔</span><span class="bnav-label">Alerts</span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: CONDITIONS
+═══════════════════════════════════════════ -->
+<div class="page active" id="page-conditions">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">❄ Lake Tahoe · 2025–26 Season</div>
+      <h1 class="hero-title">US <em>Snow</em> Report</h1>
+      <p class="hero-sub">Live weather · AI-estimated resort operations · 11 Tahoe resorts</p>
+    </div>
+    <svg class="mountains" viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0,120 L0,80 L90,52 L170,68 L260,35 L340,55 L420,28 L490,48 L560,18 L630,40 L700,12 L760,35 L840,10 L910,32 L990,8 L1060,30 L1150,16 L1230,40 L1320,22 L1400,48 L1440,36 L1440,120Z" fill="#e0eaff" opacity="0.6"/>
+      <path d="M0,120 L0,95 L80,72 L160,84 L250,55 L330,75 L410,45 L480,63 L550,38 L620,58 L700,28 L770,52 L850,25 L940,50 L1030,22 L1110,46 L1200,30 L1280,56 L1360,38 L1440,60 L1440,120Z" fill="#ccdeff" opacity="0.5"/>
+      <path d="M0,120 L0,108 L100,85 L190,98 L290,68 L375,88 L465,58 L545,78 L645,48 L730,70 L830,40 L930,66 L1030,44 L1115,62 L1215,36 L1310,58 L1395,74 L1440,62 L1440,120Z" fill="#ffffff"/>
+    </svg>
+  </div>
+
+  <div class="stats-strip" id="statsStrip">
+    <div class="stat-chip"><div class="stat-n" id="sR">—</div><div class="stat-d">Resorts</div></div>
+    <div class="stat-chip"><div class="stat-n" id="sO">—</div><div class="stat-d">Open</div></div>
+    <div class="stat-chip"><div class="stat-n" id="sB">—<span class="u">"</span></div><div class="stat-d">Avg Base</div></div>
+    <div class="stat-chip"><div class="stat-n" id="sS">—<span class="u">"</span></div><div class="stat-d">Best 7-Day</div></div>
+    <div class="stat-chip"><div class="stat-n" id="sL">—</div><div class="stat-d">Lifts Up</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search resort or state…" oninput="applyFilters()">
+      </div>
+      <button class="sort-btn" onclick="cycleSortMode()">⇅ <span id="sortLabel">Base</span></button>
+    </div>
+    <div class="filter-scroll">
+      <button class="fbtn active" onclick="setRegion('all',this)">All</button>
+      <button class="fbtn" onclick="setRegion('north_tahoe',this)">North Shore</button>
+      <button class="fbtn" onclick="setRegion('south_tahoe',this)">South Shore</button>
+      <button class="fbtn" onclick="setRegion('nevada',this)">Nevada</button>
+      <button class="fbtn" onclick="setRegion('epic',this)">Epic</button>
+      <button class="fbtn" onclick="setRegion('ikon',this)">Ikon</button>
+      <button class="fbtn" onclick="setRegion('open',this)">Open</button>
+    </div>
+    <div class="upd-row"><div class="upd" id="updLabel">—</div></div>
+  </div>
+
+  <div id="locationBanner" style="display:none;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#eff6ff,#dbeafe);border-bottom:1px solid #bfdbfe;padding:.55rem 1.25rem;gap:.75rem">
+    <div style="display:flex;align-items:center;gap:.5rem"><span style="font-size:.9rem">🚗</span><span style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:#1d4ed8;font-weight:400">Enable location for drive times &amp; road conditions to each resort</span></div>
+    <div style="display:flex;gap:.5rem;flex-shrink:0">
+      <button onclick="requestLocation();document.getElementById('locationBanner').style.display='none'" style="font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:500;background:#2563eb;color:#fff;border:none;padding:.3rem .8rem;border-radius:100px;cursor:pointer">Enable</button>
+      <button onclick="document.getElementById('locationBanner').style.display='none'" style="font-family:'DM Sans',sans-serif;font-size:.68rem;color:#64748b;background:none;border:none;cursor:pointer">Dismiss</button>
+    </div>
+  </div>
+  <div class="content-area" id="conditionsContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: WATCHLIST
+═══════════════════════════════════════════ -->
+<div class="page" id="page-watchlist">
+  <div class="page-header">
+    <div class="page-title">My <em>Watchlist</em></div>
+    <div class="page-sub">Your saved resorts — tap ❤️ on any card to add</div>
+  </div>
+  <div class="content-area" id="watchlistContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: FORECAST (Pro)
+═══════════════════════════════════════════ -->
+<div class="page" id="page-forecast">
+  <div class="page-header">
+    <div class="page-title">7-Day <em>Forecast</em></div>
+    <div class="page-sub">AI-powered snowfall outlook per resort</div>
+  </div>
+  <div id="forecastContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: TRIP PLANNER (Pro)
+═══════════════════════════════════════════ -->
+<div class="page" id="page-planner">
+  <div class="page-header">
+    <div class="page-title">Trip <em>Planner</em></div>
+    <div class="page-sub">Tell us your dates and we'll find the best resort</div>
+  </div>
+  <div id="plannerContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: POWDER ALERTS (Pro)
+═══════════════════════════════════════════ -->
+<div class="page" id="page-alerts">
+  <div class="page-header">
+    <div class="page-title">Powder <em>Alerts</em></div>
+    <div class="page-sub">Get notified when fresh snow drops</div>
+  </div>
+  <div id="alertsContent"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="loadAll(true)" title="Force refresh">↻</button>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="authTitle">Sign in to Powder</div>
+    <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.75rem">
+      <input id="authEmail" type="email" placeholder="Email address" style="padding:.75rem 1rem;border:1px solid var(--mist);border-radius:12px;font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none">
+      <input id="authPassword" type="password" placeholder="Password" style="padding:.75rem 1rem;border:1px solid var(--mist);border-radius:12px;font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none">
+      <div id="authError" style="font-size:.75rem;color:var(--red);min-height:1rem"></div>
+      <button id="authSubmitBtn" data-mode="login" onclick="submitAuth()" style="background:var(--blue);color:#fff;border:none;border-radius:12px;padding:.85rem;font-size:.95rem;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer">Sign in</button>
+      <div id="authToggle" style="font-size:.75rem;color:var(--steel);text-align:center">
+        New to Powder? <a href="#" onclick="setAuthMode('signup');return false">Create account</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title">Upgrade to Powder Pro</div>
+    <div class="modal-sub">Join skiers who never miss a powder day</div>
+    <div class="price-toggle">
+      <button class="price-toggle-btn active" onclick="setPricePeriod('month',this)">Monthly</button>
+      <button class="price-toggle-btn" onclick="setPricePeriod('year',this)">Annual <span class="save-badge">Save 50%</span></button>
+    </div>
+    <div class="plan-cards">
+      <div class="plan-card" id="planFree">
+        <div class="plan-card-name">Free</div>
+        <div class="plan-price">$0<span class="pu">/mo</span></div>
+        <div class="plan-period">Forever free</div>
+      </div>
+      <div class="plan-card selected" id="planPro">
+        <div class="plan-best">Most Popular</div>
+        <div class="plan-card-name">Pro</div>
+        <div class="plan-price" id="proPrice">$4.99<span class="pu">/mo</span></div>
+        <div class="plan-period" id="proPeriod">billed monthly</div>
+      </div>
+    </div>
+    <div class="feature-list">
+      <div class="feat-row"><span class="feat-check">✓</span> Live conditions — all 50+ resorts</div>
+      <div class="feat-row"><span class="feat-check">✓</span> Watchlist / saved resorts</div>
+      <div class="feat-row"><span class="feat-check">✓</span> Webcam links</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> 7-day snowfall forecast per resort</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> Trip planner — AI resort recommendations</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> Powder alerts — push notifications</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> Drive time + road/chain conditions per resort</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> Best conditions smart ranking</div>
+      <div class="feat-row" style="color:var(--pro)"><span class="feat-check">✦</span> Historical snowpack comparison</div>
+    </div>
+    <button class="cta-btn" onclick="activatePro()">Start Pro — <span id="ctaPrice">$4.99/month</span></button>
+    <div class="modal-legal">Cancel anytime · No commitment · Secure checkout via Stripe</div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───
+let allData = [], activeRegion = 'all', searchTerm = '';
+let watchlist = JSON.parse(localStorage.getItem('powder_watchlist') || '[]');
+let isPro = false;
+let currentUser = null;
+let authToken = localStorage.getItem('powder_token') || null;
+let sortMode = 'base'; // base | fresh | name
+let pricePeriod = 'month';
+let forecastCache = {};
+let plannerResult = null;
+let forecastSelected = null;
+let driveCache = {}; // resortName -> {time, chain, verdict}
+let userLocation = null; // {lat, lng, city}
+let locationRequested = false;
+
+// ─── SNOWFLAKES ───
+const sfEl = document.getElementById('sf');
+for(let i=0;i<28;i++){
+  const f=document.createElement('div');f.className='flake-p';
+  f.textContent=['❄','❅','❆','·'][Math.floor(Math.random()*4)];
+  f.style.cssText=`left:${Math.random()*100}%;animation-duration:${12+Math.random()*14}s;animation-delay:${Math.random()*22}s`;
+  sfEl.appendChild(f);
+}
+
+// ─── RESORT DATA ───
+const ALL_RESORTS = [
+  {name:"Palisades Tahoe",     state:"CA",   region:"north_tahoe", pass:"ikon", camUrl:"https://www.palisadestahoe.com/mountain-information/webcams"},
+  {name:"Northstar California",state:"CA",   region:"north_tahoe", pass:"epic", camUrl:"https://www.northstarcalifornia.com/the-mountain/mountain-conditions/mountain-cams.aspx"},
+  {name:"Sugar Bowl",          state:"CA",   region:"north_tahoe", pass:"ikon", camUrl:"https://www.sugarbowl.com/webcams"},
+  {name:"Boreal",              state:"CA",   region:"north_tahoe", pass:"none", camUrl:"https://www.borealski.com/mountain-conditions/"},
+  {name:"Donner Ski Ranch",    state:"CA",   region:"north_tahoe", pass:"none", camUrl:"https://www.donnerskiranch.com/ski-report/"},
+  {name:"Soda Springs",        state:"CA",   region:"north_tahoe", pass:"none", camUrl:"https://skisodasprings.com/snow-report/"},
+  {name:"Heavenly",            state:"CA/NV",region:"south_tahoe", pass:"epic", camUrl:"https://www.skiheavenly.com/the-mountain/mountain-conditions/mountain-cams.aspx"},
+  {name:"Kirkwood",            state:"CA",   region:"south_tahoe", pass:"ikon", camUrl:"https://www.kirkwood.com/the-mountain/mountain-conditions/mountain-cams.aspx"},
+  {name:"Sierra-at-Tahoe",     state:"CA",   region:"south_tahoe", pass:"ikon", camUrl:"https://www.sierraattahoe.com/webcams"},
+  {name:"Mt. Rose",            state:"NV",   region:"nevada",      pass:"none", camUrl:"https://skirose.com/the-mountain-web-cams/"},
+  {name:"Diamond Peak",        state:"NV",   region:"nevada",      pass:"none", camUrl:"https://www.diamondpeak.com/mountain/mountain-cam"},
+];
+
+const REGION_LABELS = {north_tahoe:"North Shore & Truckee",south_tahoe:"South Shore",nevada:"Nevada Side"};
+const REGION_ORDER = ["north_tahoe","south_tahoe","nevada"];
+
+// ─── PAGE NAV ───
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='watchlist') renderWatchlist();
+  if(id==='forecast')  renderForecastPage();
+  if(id==='planner')   renderPlannerPage();
+  if(id==='alerts')    renderAlertsPage();
+}
+
+function showProPage(id, btn) {
+  if(!isPro) { openModal(); return; }
+  showPage(id, btn);
+}
+
+// ─── MODAL ───
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('modal')) closeModal(); }
+function setPricePeriod(p, btn) {
+  pricePeriod = p;
+  document.querySelectorAll('.price-toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(p==='year') {
+    document.getElementById('proPrice').innerHTML='$2.49<span class="pu">/mo</span>';
+    document.getElementById('proPeriod').textContent='$29.99 billed annually';
+    document.getElementById('ctaPrice').textContent='$29.99/year';
+  } else {
+    document.getElementById('proPrice').innerHTML='$4.99<span class="pu">/mo</span>';
+    document.getElementById('proPeriod').textContent='billed monthly';
+    document.getElementById('ctaPrice').textContent='$4.99/month';
+  }
+}
+function activatePro() {
+  closeModal();
+  openAuthModal('signup');
+}
+
+function openAuthModal(mode) {
+  document.getElementById('authModal').classList.add('open');
+  setAuthMode(mode || 'login');
+}
+function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+
+function setAuthMode(mode) {
+  document.getElementById('authTitle').textContent = mode === 'signup' ? 'Create your account' : 'Sign in to Powder';
+  document.getElementById('authSubmitBtn').textContent = mode === 'signup' ? 'Create account' : 'Sign in';
+  document.getElementById('authToggle').innerHTML = mode === 'signup'
+    ? 'Already have an account? <a href="#" onclick="setAuthMode(\'login\');return false">Sign in</a>'
+    : 'New to Powder? <a href="#" onclick="setAuthMode(\'signup\');return false">Create account</a>';
+  document.getElementById('authSubmitBtn').dataset.mode = mode;
+  document.getElementById('authError').textContent = '';
+}
+
+async function submitAuth() {
+  const mode = document.getElementById('authSubmitBtn').dataset.mode;
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const err = document.getElementById('authError');
+
+  if(!email || !password) { err.textContent = 'Please enter email and password.'; return; }
+  btn.disabled = true;
+  btn.textContent = mode === 'signup' ? 'Creating account…' : 'Signing in…';
+  err.textContent = '';
+
+  try {
+    const res = await fetch(`/api/auth/${mode}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    console.log('Auth response:', data);
+    if(data.error) { err.textContent = data.error; btn.disabled = false; btn.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; return; }
+
+    if(mode === 'signup') {
+      err.style.color = 'green';
+      err.textContent = 'Account created! You can now sign in.';
+      btn.disabled = false;
+      setAuthMode('login');
+      return;
+    }
+
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('powder_token', authToken);
+    closeAuthModal();
+    applyUserState();
+  } catch(e) {
+    console.error('Auth error:', e);
+    err.textContent = 'Something went wrong. Please try again.';
+    btn.disabled = false;
+    btn.textContent = mode === 'signup' ? 'Create account' : 'Sign in';
+  }
+}
+
+function signOut() {
+  authToken = null;
+  currentUser = null;
+  isPro = false;
+  localStorage.removeItem('powder_token');
+  updateProState();
+  document.getElementById('navAvatar').textContent = '👤';
+  renderConditions();
+}
+
+function applyUserState() {
+  if(!currentUser) return;
+  isPro = currentUser.is_pro;
+  updateProState();
+  renderConditions();
+}
+
+async function checkSession() {
+  if(!authToken) return;
+  try {
+    const res = await fetch('/api/auth/session', {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const data = await res.json();
+    if(data.user) { currentUser = data.user; applyUserState(); }
+    else { authToken = null; localStorage.removeItem('powder_token'); }
+  } catch(e) {}
+}
+
+// ─── SORT ───
+const SORT_MODES = ['base','fresh','name'];
+const SORT_LABELS = {base:'Base',fresh:'Fresh',name:'A–Z'};
+function cycleSortMode() {
+  const idx = SORT_MODES.indexOf(sortMode);
+  sortMode = SORT_MODES[(idx+1)%SORT_MODES.length];
+  document.getElementById('sortLabel').textContent = SORT_LABELS[sortMode];
+  applyFilters();
+}
+
+// ─── WATCHLIST ───
+function toggleWatch(name) {
+  if(watchlist.includes(name)) watchlist = watchlist.filter(n=>n!==name);
+  else watchlist.push(name);
+  localStorage.setItem('powder_watchlist', JSON.stringify(watchlist));
+  applyFilters();
+}
+
+// ─── OPEN-METEO WEATHER DATA (real, no API key) ───
+
+// WMO weather code → ski-relevant condition label + icon
+function wmoToCondition(code, snowfall24h) {
+  if(code === null || code === undefined) return 'packed';
+  if(snowfall24h >= 4) return 'powder';
+  if(snowfall24h >= 1) return 'packed';
+  if([71,73,75,77,85,86].includes(code)) return 'powder';   // snow
+  if([51,53,55,61,63,65,80,81,82].includes(code)) return 'packed'; // rain/drizzle
+  if([0,1].includes(code)) return 'groomed';                // clear/mainly clear
+  if(code === 2 || code === 3) return 'packed';             // partly/overcast
+  if([66,67].includes(code)) return 'icy';                  // freezing rain
+  return 'packed';
+}
+
+function wmoToIcon(code) {
+  if(code === null || code === undefined) return '⛅';
+  if([0].includes(code)) return '☀️';
+  if([1,2].includes(code)) return '⛅';
+  if([3].includes(code)) return '☁️';
+  if([51,53,55].includes(code)) return '🌦';
+  if([61,63,65].includes(code)) return '🌧';
+  if([66,67].includes(code)) return '🌨';
+  if([71,73,75,77].includes(code)) return '❄️';
+  if([80,81,82].includes(code)) return '🌧';
+  if([85,86].includes(code)) return '❄️';
+  if([95,96,99].includes(code)) return '⛈';
+  return '⛅';
+}
+
+// Fetch Open-Meteo for up to 10 locations in one call
+async function fetchOpenMeteo(resorts) {
+  const lats = resorts.map(r => RESORT_COORDS[r.name]?.[0]).filter(Boolean);
+  const lngs = resorts.map(r => RESORT_COORDS[r.name]?.[1]).filter(Boolean);
+  const validResorts = resorts.filter(r => RESORT_COORDS[r.name]);
+  if(!validResorts.length) return {};
+
+  const params = new URLSearchParams({
+    latitude:  validResorts.map(r => RESORT_COORDS[r.name][0]).join(','),
+    longitude: validResorts.map(r => RESORT_COORDS[r.name][1]).join(','),
+    daily: [
+      'snowfall_sum',          // inches per day (with precipitation_unit=inch)
+      'precipitation_sum',
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'weather_code',
+      'wind_speed_10m_max',
+    ].join(','),
+    current: [
+      'temperature_2m',
+      'weather_code',
+      'snowfall',
+      'wind_speed_10m',
+    ].join(','),
+    past_days: '7',           // get last 7 days of actual snowfall
+    forecast_days: '7',       // + 7 days ahead
+    temperature_unit: 'fahrenheit',
+    wind_speed_unit: 'mph',
+    precipitation_unit: 'inch',
+    timezone: 'auto',
+  });
+
+  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if(!res.ok) throw new Error('Open-Meteo HTTP ' + res.status);
+  const json = await res.json();
+
+  // API returns array when multiple locations, single object when one
+  const results = Array.isArray(json) ? json : [json];
+  const out = {};
+
+  results.forEach((loc, i) => {
+    const resort = validResorts[i];
+    if(!resort || !loc.daily) return;
+
+    const daily = loc.daily;
+    const todayIdx = 7; // past_days=7, so index 7 = today
+    const snow = daily.snowfall_sum || [];
+
+    // Actual snowfall: past 1 day and past 7 days (indices 6..6 and 0..6)
+    const actual24h = parseFloat((snow[6] || 0).toFixed(1));  // yesterday (most recent complete day)
+    const actual7day = parseFloat(snow.slice(0, 7).reduce((s,v)=>s+(v||0), 0).toFixed(1));
+
+    // Forecast: next 7 days (indices 7..13)
+    const forecastDays = daily.time.slice(7, 14).map((date, j) => ({
+      date,
+      day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(date + 'T12:00:00').getDay()],
+      snow_inches: parseFloat((snow[7+j] || 0).toFixed(1)),
+      high_f: Math.round(daily.temperature_2m_max?.[7+j] || 32),
+      low_f:  Math.round(daily.temperature_2m_min?.[7+j] || 20),
+      icon: wmoToIcon(daily.weather_code?.[7+j]),
+      wind_mph: Math.round(daily.wind_speed_10m_max?.[7+j] || 0),
+      condition: wmoToCondition(daily.weather_code?.[7+j], snow[7+j] || 0),
+    }));
+
+    const forecastTotal = parseFloat(forecastDays.reduce((s,d)=>s+d.snow_inches,0).toFixed(1));
+    const bestForecastDay = forecastDays.reduce((a,b)=>b.snow_inches>a.snow_inches?b:a, forecastDays[0]);
+
+    // Current conditions
+    const current = loc.current || {};
+    const currentTemp = current.temperature_2m ? Math.round(current.temperature_2m) : null;
+    const currentCode = current.weather_code ?? null;
+    const currentWind = current.wind_speed_10m ? Math.round(current.wind_speed_10m) : null;
+
+    out[resort.name] = {
+      new_24h:        actual24h,
+      new_7day:       actual7day,
+      summit_temp_f:  currentTemp,
+      wind_mph:       currentWind,
+      weather_code:   currentCode,
+      condition:      wmoToCondition(currentCode, actual24h),
+      forecast:       forecastDays,
+      forecast_total: forecastTotal,
+      best_forecast_day: bestForecastDay?.day || null,
+      source:         'open-meteo',
+    };
+  });
+
+  return out;
+}
+
+// ─── LOAD DATA (Open-Meteo real weather + Claude for resort ops) ───
+function buildPrompt(names) {
+  return `Return ONLY a valid JSON array, no markdown. Current 2025-26 ski season operational data for these Lake Tahoe resorts. Estimate base_inches from typical seasonal snowpack for Tahoe (NOT temperature). Each object: {"name":string,"status":"open"|"partial"|"closed","base_inches":number,"season_total":number,"lifts_open":number,"lifts_total":number,"trails_open":number,"trails_total":number}. Do NOT include temperature, snowfall, or condition — those will come from a real weather API. Resorts: ${names.join(', ')}`;
+}
+
+// ─── CACHE CONSTANTS ───
+const CACHE_KEY_WX   = 'powder_wx_v2';      // Open-Meteo weather
+const CACHE_KEY_OPS  = 'powder_ops_v2';     // Claude resort operations
+const CACHE_TTL_WX   = 60 * 60 * 1000;     // 1 hour  — weather updates hourly
+const CACHE_TTL_OPS  = 4  * 60 * 60 * 1000;// 4 hours — ops data changes slowly
+
+function cacheSet(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+  } catch(e) { /* storage full — skip silently */ }
+}
+
+function cacheGet(key, ttl) {
+  try {
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if(Date.now() - ts > ttl) return null; // expired
+    return data;
+  } catch(e) { return null; }
+}
+
+function cacheAge(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const { ts } = JSON.parse(raw);
+    const mins = Math.round((Date.now() - ts) / 60000);
+    return mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+  } catch(e) { return null; }
+}
+
+function mergeIntoAllData(opsMap, weatherMap) {
+  allData = [];
+  ALL_RESORTS.forEach(meta => {
+    const ops = opsMap[meta.name] || {};
+    const wx  = weatherMap[meta.name] || {};
+    allData.push({
+      ...meta,
+      // ops fields (Claude)
+      status:       ops.status       ?? 'open',
+      base_inches:  ops.base_inches  ?? 50,
+      season_total: ops.season_total ?? 140,
+      lifts_open:   ops.lifts_open   ?? 10,
+      lifts_total:  ops.lifts_total  ?? 18,
+      trails_open:  ops.trails_open  ?? 40,
+      trails_total: ops.trails_total ?? 80,
+      // weather fields (Open-Meteo — override ops)
+      new_24h:        wx.new_24h        ?? ops.new_24h  ?? 0,
+      new_7day:       wx.new_7day       ?? ops.new_7day ?? 0,
+      summit_temp_f:  wx.summit_temp_f  ?? 28,
+      wind_mph:       wx.wind_mph       ?? null,
+      condition:      wx.condition      ?? ops.condition ?? 'packed',
+      weather_code:   wx.weather_code   ?? null,
+      _omForecast:    wx.forecast       ?? null,
+      _omForecastTotal: wx.forecast_total ?? null,
+      _omBestDay:     wx.best_forecast_day ?? null,
+      _wxSource:      wx.source         ?? 'ai',
+    });
+  });
+}
+
+async function fetchWeatherMap() {
+  const weatherMap = {};
+  const omBatches = [];
+  for(let i=0; i<ALL_RESORTS.length; i+=10) omBatches.push(ALL_RESORTS.slice(i,i+10));
+  await Promise.all(omBatches.map(async batch => {
+    try {
+      const data = await fetchOpenMeteo(batch);
+      Object.assign(weatherMap, data);
+    } catch(e) { console.warn('Open-Meteo batch failed:', e.message); }
+  }));
+  return weatherMap;
+}
+
+async function fetchOpsMap() {
+  const opsMap = {};
+
+  // 1. Try the database first (real scraped data)
+  try {
+    const res = await fetch('/api/conditions');
+    const dbData = await res.json();
+    Object.assign(opsMap, dbData);
+  } catch(e) {}
+
+  // 2. For resorts with no DB data, fall back to Claude estimate
+  const missing = ALL_RESORTS.filter(r => !opsMap[r.name] || opsMap[r.name].base_inches === null);
+  if(missing.length > 0) {
+    const BATCH = 16;
+    const clBatches = [];
+    for(let i=0; i<missing.length; i+=BATCH) clBatches.push(missing.slice(i,i+BATCH));
+    await Promise.all(clBatches.map(async batch => {
+      try {
+        const res = await fetch('/api/claude',{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            model:'claude-sonnet-4-6', max_tokens:800,
+            messages:[{role:'user',content:buildPrompt(batch.map(r=>r.name))}]
+          })
+        });
+        const d = await res.json();
+        const parsed = JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+        parsed.forEach(r => {
+          if(!opsMap[r.name] || opsMap[r.name].base_inches === null) {
+            opsMap[r.name] = { ...r, _source: 'ai' };
+          }
+        });
+      } catch(e) {
+        batch.forEach(r => {
+          if(!opsMap[r.name]) {
+            opsMap[r.name] = {
+              status:'open', base_inches:55, season_total:140,
+              lifts_open:12, lifts_total:20, trails_open:45, trails_total:80, _source:'fallback'
+            };
+          }
+        });
+      }
+    }));
+  }
+
+  return opsMap;
+}
+
+async function loadAll(forceRefresh = false) {
+  const loader    = document.getElementById('loader');
+  const loaderSub = document.getElementById('loaderSub');
+  const prog      = document.getElementById('prog');
+
+  // ── CHECK CACHE FIRST ──
+  const cachedWx  = forceRefresh ? null : cacheGet(CACHE_KEY_WX,  CACHE_TTL_WX);
+  const cachedOps = forceRefresh ? null : cacheGet(CACHE_KEY_OPS, CACHE_TTL_OPS);
+
+  if(cachedWx && cachedOps) {
+    // ✅ INSTANT LOAD — both caches valid, show data immediately
+    mergeIntoAllData(cachedOps, cachedWx);
+    updateStats();
+    applyFilters();
+
+    const wxAge  = cacheAge(CACHE_KEY_WX);
+    const opsAge = cacheAge(CACHE_KEY_OPS);
+    document.getElementById('updLabel').textContent =
+      `⚡ Loaded from cache · Weather ${wxAge} · Data ${opsAge} · ↻ to refresh`;
+
+    // Hide loader immediately
+    loader.classList.add('gone');
+    prog.style.width = '0%';
+
+    // ── BACKGROUND REFRESH if weather cache > 45 min old ──
+    const wxTs = JSON.parse(localStorage.getItem(CACHE_KEY_WX)||'{}').ts || 0;
+    if(Date.now() - wxTs > 45 * 60 * 1000) {
+      setTimeout(() => backgroundRefreshWeather(cachedOps), 500);
+    }
+    return;
+  }
+
+  // ── PARTIAL CACHE — show stale data instantly, then refresh ──
+  if(cachedOps && !cachedWx) {
+    // Show ops immediately with placeholder weather
+    mergeIntoAllData(cachedOps, {});
+    updateStats(); applyFilters();
+    loaderSub.textContent = 'Updating weather data…';
+  } else if(cachedWx && !cachedOps) {
+    loaderSub.textContent = 'Fetching resort operations…';
+  }
+
+  // ── FULL FETCH ──
+  loader.classList.remove('gone');
+  prog.style.width = '5%';
+
+  // Fetch weather + ops in parallel
+  const isFirstLoad = !cachedWx && !cachedOps;
+  if(isFirstLoad) loaderSub.textContent = 'First load — fetching weather & resort data…';
+
+  const [weatherMap, opsMap] = await Promise.all([
+    cachedWx  ? Promise.resolve(cachedWx)  : (async () => {
+      loaderSub.textContent = 'Fetching live weather (Open-Meteo)…';
+      const m = await fetchWeatherMap();
+      cacheSet(CACHE_KEY_WX, m);
+      prog.style.width = '50%';
+      return m;
+    })(),
+    cachedOps ? Promise.resolve(cachedOps) : (async () => {
+      const m = await fetchOpsMap();
+      cacheSet(CACHE_KEY_OPS, m);
+      return m;
+    })(),
+  ]);
+
+  prog.style.width = '90%';
+  mergeIntoAllData(opsMap, weatherMap);
+  updateStats(); applyFilters();
+
+  const realWxCount = allData.filter(r=>r._wxSource==='open-meteo').length;
+  const wxAge = cacheAge(CACHE_KEY_WX) || 'just now';
+  document.getElementById('updLabel').textContent =
+    `Updated ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · ` +
+    `${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ` +
+    `⛅ ${realWxCount} live · Weather ${wxAge}`;
+
+  setTimeout(()=>{
+    loader.classList.add('gone');
+    setTimeout(()=>prog.style.width='0%', 600);
+  }, 300);
+}
+
+// Silent background weather refresh — doesn't show loader
+async function backgroundRefreshWeather(currentOpsMap) {
+  try {
+    const weatherMap = await fetchWeatherMap();
+    cacheSet(CACHE_KEY_WX, weatherMap);
+    mergeIntoAllData(currentOpsMap, weatherMap);
+    updateStats(); applyFilters();
+    const wxAge = cacheAge(CACHE_KEY_WX) || 'just now';
+    const realWxCount = allData.filter(r=>r._wxSource==='open-meteo').length;
+    document.getElementById('updLabel').textContent =
+      `⛅ Weather refreshed · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · ${realWxCount} live`;
+    console.log('[Powder] Background weather refresh complete');
+  } catch(e) {
+    console.warn('[Powder] Background refresh failed:', e.message);
+  }
+}
+
+
+function updateStats() {
+  if(!allData.length) return;
+  const open=allData.filter(r=>r.status!=='closed').length;
+  const avg=Math.round(allData.reduce((s,r)=>s+(r.base_inches||0),0)/allData.length);
+  const bestSnow=Math.max(...allData.map(r=>r.new_7day||0));
+  const lifts=allData.reduce((s,r)=>s+(r.lifts_open||0),0);
+  document.getElementById('sR').textContent=allData.length;
+  document.getElementById('sO').textContent=open;
+  document.getElementById('sB').innerHTML=`${avg}<span class="u">"</span>`;
+  document.getElementById('sS').innerHTML=`${bestSnow}<span class="u">"</span>`;
+  document.getElementById('sL').textContent=lifts;
+}
+
+function setRegion(r,btn) {
+  activeRegion=r;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  searchTerm = (document.getElementById('searchInput')||{value:''}).value.toLowerCase();
+  let filtered=[...allData];
+  if(activeRegion==='open') filtered=filtered.filter(r=>r.status!=='closed');
+  else if(activeRegion==='epic') filtered=filtered.filter(r=>r.pass==='epic');
+  else if(activeRegion==='ikon') filtered=filtered.filter(r=>r.pass==='ikon');
+  else if(activeRegion!=='all') filtered=filtered.filter(r=>r.region===activeRegion);
+  if(searchTerm) filtered=filtered.filter(r=>r.name.toLowerCase().includes(searchTerm)||(r.state||'').toLowerCase().includes(searchTerm));
+  if(sortMode==='base') filtered.sort((a,b)=>(b.base_inches||0)-(a.base_inches||0));
+  else if(sortMode==='fresh') filtered.sort((a,b)=>(b.new_7day||0)-(a.new_7day||0));
+  else filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  renderConditions(filtered);
+  // Re-wire drive time load after render
+  if(userLocation) setTimeout(loadAllDriveTimes, 200);
+}
+
+function toggleCam(id) {
+  const d=document.getElementById('cd-'+id),b=document.getElementById('cb-'+id);
+  const o=d.classList.contains('open');
+  d.classList.toggle('open',!o); b.classList.toggle('open',!o);
+}
+
+// ─── RENDER CONDITIONS ───
+function renderConditions(list) {
+  const el=document.getElementById('conditionsContent');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--steel);font-size:.85rem">No resorts match your search.</div>';return;}
+  const maxBase=Math.max(...allData.map(r=>r.base_inches||0),1);
+  const topFresh=[...allData].sort((a,b)=>(b.new_7day||0)-(a.new_7day||0)).slice(0,3).map(r=>r.name);
+
+  // Group by region unless sorted/searching
+  const doGroup = sortMode==='base'||sortMode==='name' ? !searchTerm && activeRegion==='all' : false;
+
+  if(doGroup) {
+    const groups={};
+    list.forEach(r=>{const k=r.region||'other';if(!groups[k])groups[k]=[];groups[k].push(r);});
+    let html='';
+    REGION_ORDER.filter(k=>groups[k]).forEach(k=>{
+      const rs=groups[k];
+      html+=`<div class="region-sec"><div class="region-hdr"><div class="region-title">${REGION_LABELS[k]||k}</div><div class="region-line"></div><div class="region-ct">${rs.filter(r=>r.status!=='closed').length}/${rs.length} open</div></div><div class="resort-grid">${rs.map((r,i)=>cardHtml(r,i,maxBase,topFresh)).join('')}</div></div>`;
+    });
+    el.innerHTML=html+'<div style="height:2rem"></div>';
+  } else {
+    el.innerHTML=`<div class="resort-grid">${list.map((r,i)=>cardHtml(r,i,maxBase,topFresh)).join('')}</div><div style="height:2rem"></div>`;
+  }
+}
+
+function cardHtml(r,i,maxBase,topFresh) {
+  const pct=maxBase?Math.round((r.base_inches/maxBase)*100):0;
+  const passHtml=r.pass&&r.pass!=='none'?`<span class="ptag ptag-${r.pass}">${r.pass==='epic'?'Epic':'Ikon'}</span>`:'';
+  const hi=(r.new_24h||0)>0?' hi':'';
+  const isWatched=watchlist.includes(r.name);
+  const isBest=topFresh.includes(r.name);
+  const idx=`${r.region||'x'}-${i}`;
+  return `
+  <div class="card" style="animation-delay:${(i*.03).toFixed(2)}s">
+    <div class="cbar cbar-${r.status}"></div>
+    <div class="card-head">
+      <div>
+        <div class="rname">${r.name} ${isBest&&isPro?'<span class="best-badge">🏆 Best Snow</span>':''}</div>
+        <div class="rmeta"><span class="state-tag">${r.state||''}</span>${passHtml}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem">
+        <button class="heart-btn" onclick="toggleWatch('${r.name}')" title="Save">${isWatched?'❤️':'🤍'}</button>
+        <span class="badge badge-${r.status}"><span class="bdot"></span>${r.status==='open'?'Open':r.status==='partial'?'Partial':'Closed'}</span>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="metrics">
+      <div class="metric"><div class="mv">${r.base_inches||0}<span class="u">"</span></div><div class="ml">Base</div></div>
+      <div class="metric"><div class="mv${hi}">${r.new_24h||0}<span class="u">"</span></div><div class="ml">24 hr</div></div>
+      <div class="metric"><div class="mv">${r.new_7day||0}<span class="u">"</span></div><div class="ml">7 Day</div></div>
+    </div>
+    <div class="basebar">
+      <div class="blabels"><span>Base depth</span><span class="s">${r.season_total||0}" season</span></div>
+      <div class="btrack"><div class="bfill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="cfoot">
+      <div class="lts">
+        <div class="lt">🚡 <span><span class="ln">${r.lifts_open||0}</span>/${r.lifts_total||0}</span></div>
+        <div class="lt">🎿 <span><span class="ln">${r.trails_open||0}</span>/${r.trails_total||0}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.45rem">
+        <span class="tempb">${r.summit_temp_f||0}°F${r._wxSource==='open-meteo'?'<span style="font-size:.48rem;font-weight:600;letter-spacing:.06em;background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;padding:.08rem .28rem;border-radius:3px;margin-left:.25rem;vertical-align:middle">⛅ LIVE</span>':''}</span>
+        <span class="cpill cond-${r.condition||'packed'}">${r.condition||'packed'}</span>
+      </div>
+    </div>
+    <div class="cam-row">
+      <button class="cam-tbtn" id="cb-${idx}" onclick="toggleCam('${idx}')">📷 Live Cam <span class="cam-arr">▾</span></button>
+      ${r.camUrl?`<a class="cam-link" href="${r.camUrl}" target="_blank">Open ↗</a>`:''}
+    </div>
+    <div class="cam-drawer" id="cd-${idx}">
+      <div class="cam-inner">
+        <div class="cam-lens"><span style="font-size:1rem;opacity:.4;position:relative;z-index:1">📷</span></div>
+        <p class="cam-note">Live webcam — streams on official resort site</p>
+        ${r.camUrl?`<a class="cam-vbtn" href="${r.camUrl}" target="_blank">View Live Webcam ↗</a>`:''}
+      </div>
+    </div>
+    <div class="drive-row" id="dr-${idx}">
+      ${userLocation
+        ? `<div class="drive-left"><span class="drive-icon">🚗</span><div class="drive-info"><div class="drive-time" id="dt-${idx}"><span class="drive-loading">calculating…</span></div><div class="drive-sublabel">from your location</div></div></div><div id="dc-${idx}"></div>`
+        : `<div class="drive-pro-lock">🚗 Drive time — <span onclick="requestLocation()">enable location</span></div>`
+      }
+    </div>
+    <div class="drive-verdict" id="dv-${idx}" style="display:none"></div>
+    <div class="card-forecast">
+      <div class="card-forecast-head">
+        <div class="card-forecast-label" style="cursor:pointer" onclick="loadMiniFC('${r.name}','${idx}')">✦ 7-Day Forecast</div>
+        ${isPro ? `<span style="font-size:.58rem;color:var(--blue);cursor:pointer;font-weight:500" id="fcstatus-${idx}" onclick="loadMiniFC('${r.name}','${idx}')">Load ›</span>` : `<span class="card-forecast-unlock" onclick="openModal()">Unlock Pro</span>`}
+      </div>
+      <div class="forecast-blur-wrap" id="fcwrap-${idx}">
+        <div class="mini-days" id="minidays-${idx}">
+          ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="mini-day"><div class="mini-day-name">${d}</div><div class="mini-day-icon">—</div><div class="mini-day-snow no-snow">—</div></div>`).join('')}
+        </div>
+        ${!isPro ? `<div class="forecast-blur-overlay"><button class="forecast-unlock-btn" onclick="openModal()">✦ Unlock Forecast</button></div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── MINI FORECAST LOADER ───
+async function loadMiniFC(resortName, idx) {
+  if(!isPro) { openModal(); return; }
+  const statusEl = document.getElementById('fcstatus-'+idx);
+  const miniEl = document.getElementById('minidays-'+idx);
+  if(!miniEl) return;
+
+  // Use already-cached data first
+  if(forecastCache[resortName]) {
+    renderMiniDays(forecastCache[resortName], miniEl);
+    if(statusEl) statusEl.textContent='';
+    return;
+  }
+
+  const resort = allData.find(r=>r.name===resortName);
+  if(!resort) return;
+
+  // ── Use Open-Meteo forecast data pre-loaded during startup ──
+  if(resort._omForecast && resort._omForecast.length) {
+    forecastCache[resortName] = {
+      days: resort._omForecast,
+      total_7day: resort._omForecastTotal,
+      source: 'open-meteo'
+    };
+    renderMiniDays(forecastCache[resortName], miniEl);
+    if(statusEl) statusEl.textContent='';
+    return;
+  }
+
+  // ── Fallback: Claude AI forecast (only if Open-Meteo data missing) ──
+  if(statusEl) statusEl.innerHTML='<span style="animation:blink 1.5s infinite;display:inline-block">loading…</span>';
+  try {
+    const res = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Return ONLY JSON (no markdown): {"days":[{"day":"Mon","icon":"🌨"|"☁️"|"⛅"|"☀️","snow_inches":number}],"total_7day":number} — 7-day forecast for ${resort.name}. 7 days only.`}]})});
+    const d = await res.json();
+    forecastCache[resortName] = JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    forecastCache[resortName] = {days:[{day:'Mon',icon:'⛅',snow_inches:0},{day:'Tue',icon:'🌨',snow_inches:3},{day:'Wed',icon:'🌨',snow_inches:7},{day:'Thu',icon:'☁️',snow_inches:1},{day:'Fri',icon:'⛅',snow_inches:0},{day:'Sat',icon:'☀️',snow_inches:0},{day:'Sun',icon:'⛅',snow_inches:2}],total_7day:13};
+  }
+  renderMiniDays(forecastCache[resortName], miniEl);
+  if(statusEl) statusEl.textContent='';
+}
+
+function renderMiniDays(fc, el) {
+  if(!fc||!fc.days||!el) return;
+  el.innerHTML = fc.days.map(d=>`
+    <div class="mini-day">
+      <div class="mini-day-name">${d.day}</div>
+      <div class="mini-day-icon">${d.icon}</div>
+      <div class="mini-day-snow ${d.snow_inches>0?'':'no-snow'}">${d.snow_inches>0?d.snow_inches+'&#34;':'—'}</div>
+    </div>`).join('');
+}
+
+// ─── WATCHLIST PAGE ───
+function renderWatchlist() {
+  const el=document.getElementById('watchlistContent');
+  const watched=allData.filter(r=>watchlist.includes(r.name));
+  if(!watched.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🤍</div><div class="empty-msg">No resorts saved yet</div><div class="empty-hint">Tap 🤍 on any resort card to add it here</div></div>`;return;}
+  const maxBase=Math.max(...allData.map(r=>r.base_inches||0),1);
+  el.innerHTML=`<div class="resort-grid" style="padding:0 1rem">${watched.map((r,i)=>cardHtml(r,i,maxBase,[])).join('')}</div>`;
+}
+
+// ─── FORECAST PAGE (rich) ───
+function renderForecastPage() {
+  const el = document.getElementById('forecastContent');
+  const topResorts = [...allData].sort((a,b)=>(b.new_7day||0)-(a.new_7day||0));
+  if(forecastSelected) {
+    el.innerHTML = `
+      <div class="forecast-search-wrap">
+        <span class="forecast-search-icon">🔍</span>
+        <input type="text" id="forecastSearch" placeholder="Search resort…" oninput="filterFCList()" value="${forecastSelected.name}">
+      </div>
+      <div id="fcListWrap" style="display:none"><div class="fc-resort-list" id="forecastList"></div></div>
+      ${buildFCPanel(forecastSelected)}`;
+    loadFCPanel(forecastSelected);
+  } else {
+    el.innerHTML = `
+      <div class="forecast-hero">
+        <div class="forecast-hero-title">7-Day <em>Snow Forecast</em></div>
+        <div class="forecast-hero-sub">AI-powered outlook · Updated daily · Select any resort</div>
+      </div>
+      <div class="forecast-search-wrap">
+        <span class="forecast-search-icon">🔍</span>
+        <input type="text" id="forecastSearch" placeholder="Search resort…" oninput="filterFCList()">
+      </div>
+      <div class="fc-resort-list" id="forecastList">
+        ${topResorts.slice(0,25).map(r=>`
+        <div class="fc-resort-item" onclick="selectForecast('${r.name}')">
+          <div class="fc-resort-left">
+            <div class="fc-resort-name">${r.name}</div>
+            <div class="fc-resort-meta">${r.state} · ${REGION_LABELS[r.region]||r.region} · Base ${r.base_inches||0}"</div>
+          </div>
+          <div class="fc-resort-snow">
+            <div class="fc-snow-num">${r.new_7day||0}"</div>
+            <div class="fc-snow-label">7-day</div>
+          </div>
+        </div>`).join('')}
+      </div>`;
+  }
+}
+
+function filterFCList() {
+  const q = (document.getElementById('forecastSearch')||{value:''}).value.toLowerCase();
+  const listWrap = document.getElementById('fcListWrap');
+  const list = document.getElementById('forecastList');
+  if(listWrap) listWrap.style.display = q ? '' : 'none';
+  if(!list) return;
+  const filtered = allData.filter(r=>r.name.toLowerCase().includes(q)||(r.state||'').toLowerCase().includes(q)).slice(0,12);
+  list.innerHTML = filtered.map(r=>`
+    <div class="fc-resort-item" onclick="selectForecast('${r.name}')">
+      <div class="fc-resort-left"><div class="fc-resort-name">${r.name}</div><div class="fc-resort-meta">${r.state} · Base ${r.base_inches||0}"</div></div>
+      <div class="fc-resort-snow"><div class="fc-snow-num">${r.new_7day||0}"</div><div class="fc-snow-label">7-day</div></div>
+    </div>`).join('');
+}
+
+function selectForecast(name) {
+  forecastSelected = allData.find(r=>r.name===name);
+  renderForecastPage();
+}
+
+function buildFCPanel(resort) {
+  return `<div class="fc-panel" id="fcPanel">
+    <div class="fc-panel-head">
+      <div>
+        <button class="fc-back" onclick="forecastSelected=null;renderForecastPage()">‹ All Resorts</button>
+        <div class="fc-panel-name">${resort.name}</div>
+        <div class="fc-panel-meta">${resort.state} · ${REGION_LABELS[resort.region]||''} · ${resort.pass&&resort.pass!=='none'?resort.pass.toUpperCase()+' Pass':''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="fc-panel-base">${resort.base_inches||0}"</div>
+        <div class="fc-panel-base-label">Current base</div>
+      </div>
+    </div>
+    <div id="fcPanelBody"><div style="text-align:center;padding:2rem;color:var(--steel);font-size:.72rem;animation:blink 1.5s infinite">✦ Generating forecast…</div></div>
+  </div>`;
+}
+
+let selectedDayIdx = 0;
+async function loadFCPanel(resort) {
+  // ── Use Open-Meteo forecast pre-loaded during startup ──
+  if(resort._omForecast && resort._omForecast.length && !forecastCache[resort.name]) {
+    forecastCache[resort.name] = {
+      days: resort._omForecast,
+      total_7day: resort._omForecastTotal,
+      best_day: resort._omBestDay,
+      source: 'open-meteo',
+      summary: null, // will be set by Claude summary call below
+    };
+    renderFCPanelBody(forecastCache[resort.name], resort);
+    // Enrich with an AI narrative summary (lightweight — just text, no data)
+    enrichFCSummary(resort);
+    return;
+  }
+
+  if(forecastCache[resort.name]) { renderFCPanelBody(forecastCache[resort.name], resort); return; }
+
+  // ── Fallback: Claude AI forecast ──
+  try {
+    const res = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,messages:[{role:'user',content:`Return ONLY a JSON object (no markdown): {"days":[{"day":"Mon","date":"Feb 24","icon":"🌨"|"☁️"|"⛅"|"☀️"|"🌧","snow_inches":number,"high_f":number,"low_f":number,"wind_mph":number,"condition":"powder"|"packed"|"groomed"|"icy"}],"summary":"3 sentence detailed outlook","total_7day":number,"best_day":"Mon"} — 7-day forecast for ${resort.name}. Current base ${resort.base_inches}". Be specific and realistic.`}]})});
+    const d = await res.json();
+    forecastCache[resort.name] = JSON.parse(d.content[0].text.replace(/`\`\`json|`\`\`/g,'').trim());
+  } catch(e) {
+    forecastCache[resort.name] = {days:[{day:'Mon',date:'Feb 24',icon:'⛅',snow_inches:0,high_f:32,low_f:18,wind_mph:8,condition:'packed'},{day:'Tue',date:'Feb 25',icon:'🌨',snow_inches:5,high_f:27,low_f:13,wind_mph:12,condition:'powder'},{day:'Wed',date:'Feb 26',icon:'🌨',snow_inches:9,high_f:25,low_f:11,wind_mph:18,condition:'powder'},{day:'Thu',date:'Feb 27',icon:'☁️',snow_inches:2,high_f:29,low_f:15,wind_mph:10,condition:'packed'},{day:'Fri',date:'Feb 28',icon:'⛅',snow_inches:0,high_f:34,low_f:20,wind_mph:6,condition:'groomed'},{day:'Sat',date:'Mar 1',icon:'☀️',snow_inches:0,high_f:38,low_f:22,wind_mph:4,condition:'groomed'},{day:'Sun',date:'Mar 2',icon:'⛅',snow_inches:1,high_f:35,low_f:19,wind_mph:7,condition:'packed'}],summary:'Storm mid-week brings powder. Weekend clears for groomed cruising.',total_7day:17,best_day:'Wed',source:'ai'};
+  }
+  renderFCPanelBody(forecastCache[resort.name], resort);
+}
+
+// Generate a plain-English summary using Claude (lightweight — just 2 sentences, no numerical data)
+async function enrichFCSummary(resort) {
+  const fc = forecastCache[resort.name];
+  if(!fc || fc.summary) return;
+  try {
+    const snowDays = fc.days.filter(d=>d.snow_inches>0);
+    const totalSnow = fc.total_7day || 0;
+    const res = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:120,messages:[{role:'user',content:`Write a 2-sentence ski forecast summary for ${resort.name} based on these facts: ${totalSnow}" total forecast snowfall over 7 days, ${snowDays.length} snow days, best day is ${fc.best_day||'midweek'} with ${snowDays.reduce((a,b)=>b.snow_inches>a.snow_inches?b:a,{snow_inches:0}).snow_inches||0}" forecast. Current base: ${resort.base_inches}". Write naturally, like a ski resort forecaster. No JSON, just the sentences.`}]})});
+    const d = await res.json();
+    fc.summary = d.content[0].text.trim();
+    // Re-render summary section
+    const summaryEl = document.getElementById('fcPanelBody')?.querySelector('.fc-summary');
+    if(summaryEl) summaryEl.innerHTML = `<strong>Outlook:</strong> ${fc.summary}`;
+  } catch(e) { /* silently skip */ }
+}
+
+function renderFCPanelBody(fc, resort) {
+  const el = document.getElementById('fcPanelBody');
+  if(!el) return;
+  selectedDayIdx = 0;
+  const totalSnow = fc.total_7day || fc.days.reduce((s,d)=>s+(d.snow_inches||0),0);
+  const bestDay = fc.days.find(d=>d.day===fc.best_day) || fc.days.reduce((a,b)=>(b.snow_inches>a.snow_inches?b:a));
+  const powderDays = fc.days.filter(d=>d.snow_inches>=4).length;
+  el.innerHTML = `
+    <div class="fc-days-scroll">
+      ${fc.days.map((d,i)=>`
+      <div class="fc-day ${i===0?'selected':''}" id="fcday-${i}" onclick="selectFCDay(${i})">
+        <div class="fc-day-name">${d.day}</div>
+        <div class="fc-day-icon">${d.icon}</div>
+        <div class="fc-day-snow ${d.snow_inches>0?'powder':'none'}">${d.snow_inches>0?d.snow_inches:'—'}<span style="font-size:.6rem;color:var(--steel)">${d.snow_inches>0?'"':''}</span></div>
+        <div class="fc-day-snow-label">snow</div>
+        <div class="fc-day-temps">${d.high_f}°/${d.low_f}°</div>
+      </div>`).join('')}
+    </div>
+    <div class="fc-detail" id="fcDetailPanel">${renderFCDayDetail(fc.days[0])}</div>
+    ${powderDays>0?`<div class="fc-powder-alert" style="margin:.75rem 1.1rem 0"><div class="fc-powder-alert-icon">❄️</div><div class="fc-powder-alert-text"><strong>${powderDays} powder day${powderDays>1?'s':''} this week</strong> — best is ${bestDay.day} with ${bestDay.snow_inches}" forecast</div></div>`:''}
+    <div class="fc-detail" style="padding-top:.6rem">
+      <div class="fc-detail-title">7-Day Summary</div>
+      <div class="fc-detail-grid">
+        <div class="fc-detail-item"><div class="fc-detail-val">${totalSnow}"</div><div class="fc-detail-label">Total Snow</div></div>
+        <div class="fc-detail-item"><div class="fc-detail-val">${bestDay.day}</div><div class="fc-detail-label">Best Day</div></div>
+        <div class="fc-detail-item"><div class="fc-detail-val">${powderDays}</div><div class="fc-detail-label">Powder Days</div></div>
+      </div>
+    </div>
+    <div class="fc-summary"><strong>Outlook:</strong> ${fc.summary}</div>`;
+  el.dataset.fcJson = JSON.stringify(fc.days);
+}
+
+function renderFCDayDetail(day) {
+  if(!day) return '';
+  return `<div class="fc-detail-title">${day.day}${day.date?' · '+day.date:''} — Detail</div>
+    <div class="fc-detail-grid">
+      <div class="fc-detail-item"><div class="fc-detail-val">${day.snow_inches||0}"</div><div class="fc-detail-label">Snowfall</div></div>
+      <div class="fc-detail-item"><div class="fc-detail-val">${day.high_f||0}°</div><div class="fc-detail-label">High</div></div>
+      <div class="fc-detail-item"><div class="fc-detail-val">${day.low_f||0}°</div><div class="fc-detail-label">Low</div></div>
+      ${day.wind_mph?`<div class="fc-detail-item"><div class="fc-detail-val">${day.wind_mph}</div><div class="fc-detail-label">Wind mph</div></div>`:''}
+      ${day.condition?`<div class="fc-detail-item" style="grid-column:span 2"><div class="fc-detail-val" style="font-size:.82rem">${day.condition}</div><div class="fc-detail-label">Conditions</div></div>`:''}
+    </div>`;
+}
+
+function selectFCDay(idx) {
+  selectedDayIdx = idx;
+  document.querySelectorAll('.fc-day').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  const bodyEl = document.getElementById('fcPanelBody');
+  if(!bodyEl) return;
+  try {
+    const days = JSON.parse(bodyEl.dataset.fcJson||'[]');
+    const detail = document.getElementById('fcDetailPanel');
+    if(detail && days[idx]) detail.innerHTML = renderFCDayDetail(days[idx]);
+  } catch(e){}
+}
+
+// ─── TRIP PLANNER WIZARD ───
+
+// Wizard state
+let wiz = {
+  step: 0,
+  dates: { start: null, end: null },
+  group: [],           // [{name, skill, emoji}]
+  budget: null,        // 'low'|'mid'|'high'|'any'
+  maxDriveHours: null, // number
+  regions: [],         // []='any'
+  passes: [],          // []='any'
+  result: null,
+};
+
+const STEP_COUNT = 6;
+const BUDGETS = [
+  { id:'low',  label:'Under $150/day',  sub:'budget-friendly',    emoji:'💸' },
+  { id:'mid',  label:'$150–$300/day',   sub:'mid-range',          emoji:'💳' },
+  { id:'high', label:'$300+/day',       sub:'premium experience', emoji:'💎' },
+  { id:'any',  label:'No limit',        sub:'show me everything', emoji:'🎿' },
+];
+// Lift ticket walk-up estimates (per day, no pass)
+const LIFT_PRICES = {
+  'Palisades Tahoe':250,'Northstar California':220,'Sugar Bowl':130,
+  'Boreal':80,'Donner Ski Ranch':60,'Soda Springs':50,
+  'Heavenly':220,'Kirkwood':190,'Sierra-at-Tahoe':130,
+  'Mt. Rose':105,'Diamond Peak':95,
+  'default':150
+};
+
+// Terrain mix — percentage of runs by difficulty (rough estimates)
+// Used for group fit scoring: {beginner%, intermediate%, advanced%}
+const TERRAIN_MIX = {
+  'Palisades Tahoe':    {b:25,i:45,a:30},
+  'Northstar California':{b:13,i:60,a:27},
+  'Sugar Bowl':         {b:17,i:45,a:38},
+  'Boreal':             {b:30,i:40,a:30},
+  'Donner Ski Ranch':   {b:25,i:50,a:25},
+  'Soda Springs':       {b:50,i:35,a:15},
+  'Heavenly':           {b:20,i:45,a:35},
+  'Kirkwood':           {b:15,i:35,a:50},
+  'Sierra-at-Tahoe':    {b:25,i:50,a:25},
+  'Mt. Rose':           {b:20,i:40,a:40},
+  'Diamond Peak':       {b:18,i:46,a:36},
+  'default':            {b:20,i:45,a:35},
+};
+
+function getLiftPrice(name) { return LIFT_PRICES[name] || LIFT_PRICES.default; }
+function getTerrain(name)   { return TERRAIN_MIX[name]  || TERRAIN_MIX.default; }
+
+// Score how well a resort fits a group of mixed skill levels
+// Returns 0-1: 1 = perfect fit for everyone, 0 = missing terrain for some skills
+function groupFitScore(resortName, group) {
+  const mix = getTerrain(resortName);
+  const skills = group.map(m => m.skill);
+  let score = 1;
+  if(skills.includes('Beginner')    && mix.b < 10) score -= 0.35;
+  if(skills.includes('Intermediate')&& mix.i < 20) score -= 0.25;
+  if(skills.includes('Advanced')    && mix.a < 20) score -= 0.2;
+  if(skills.includes('Expert')      && mix.a < 30) score -= 0.15;
+  // Bonus: diverse group loves a resort with good spread
+  const unique = [...new Set(skills)];
+  if(unique.length >= 3 && mix.b >= 15 && mix.i >= 30 && mix.a >= 25) score = Math.min(1, score + 0.1);
+  return Math.max(0, score);
+}
+
+function groupFitLabel(score) {
+  if(score >= 0.85) return 'perfect';
+  if(score >= 0.6)  return 'good';
+  return 'ok';
+}
+
+// Snowfall forecast specifically for trip dates
+function forecastSnowForDates(resort, startDate, endDate) {
+  const fc = resort._omForecast;
+  if(!fc || !fc.length) return { total: null, days: [] };
+  const start = new Date(startDate + 'T12:00:00');
+  const end   = new Date(endDate   + 'T12:00:00');
+  const matching = fc.filter(d => {
+    const dt = new Date(d.date + 'T12:00:00');
+    return dt >= start && dt <= end;
+  });
+  const total = parseFloat(matching.reduce((s,d)=>s+(d.snow_inches||0),0).toFixed(1));
+  const bestDay = matching.reduce((a,b)=>b.snow_inches>a.snow_inches?b:a, matching[0]);
+  return { total, days: matching, bestDay };
+}
+
+// Pass savings: if user has the pass, lift tickets are free/discounted
+function calcPassSavings(resortName, resortPass, userPasses, nights) {
+  if(!userPasses.length || userPasses.includes('none')) return null;
+  const hasPass = userPasses.includes(resortPass);
+  if(!hasPass) return null;
+  const price = getLiftPrice(resortName);
+  const saved = price * nights;
+  return `Saves ~$${saved} with ${resortPass.charAt(0).toUpperCase()+resortPass.slice(1)} Pass`;
+}
+
+const LIFTPRICE = getLiftPrice; // backward compat alias
+
+const DRIVE_OPTIONS = [
+  { h:2,  label:'Under 2 hrs',  emoji:'🏡' },
+  { h:4,  label:'Under 4 hrs',  emoji:'🚗' },
+  { h:6,  label:'Under 6 hrs',  emoji:'🛣️' },
+  { h:99, label:'Any distance', emoji:'✈️' },
+];
+const SKILL_EMOJIS = { Beginner:'🟢', Intermediate:'🔵', Advanced:'⚫', Expert:'💀' };
+const MEMBER_EMOJIS = ['🧑‍🎿','👩‍🎿','🧒','👨‍🦳','👩‍🦳','🏂','🎿','⛷️'];
+
+function renderPlannerPage() {
+  wiz = { step:0, dates:{start:null,end:null}, group:[], budget:null, maxDriveHours:null, regions:[], passes:[], result:null };
+  const now = new Date();
+  const d1 = new Date(now); d1.setDate(d1.getDate()+7);
+  const d2 = new Date(now); d2.setDate(d2.getDate()+9);
+  wiz.dates.start = d1.toISOString().split('T')[0];
+  wiz.dates.end   = d2.toISOString().split('T')[0];
+  wiz.group = [{ name:'Me', skill:'Intermediate', emoji:'🧑‍🎿' }];
+  renderWizStep();
+}
+
+function renderWizStep() {
+  const el = document.getElementById('plannerContent');
+  const stepLabels = ['Dates','Group','Budget','Distance','Region & Pass','Review'];
+  const dots = Array.from({length:STEP_COUNT},(_,i)=>
+    `<div class="wiz-step-dot ${i<wiz.step?'done':i===wiz.step?'active':''}"></div>`
+  ).join('');
+
+  let body = '';
+  if(wiz.step === 0) body = stepDates();
+  else if(wiz.step === 1) body = stepGroup();
+  else if(wiz.step === 2) body = stepBudget();
+  else if(wiz.step === 3) body = stepDistance();
+  else if(wiz.step === 4) body = stepRegionPass();
+  else if(wiz.step === 5) body = stepReview();
+
+  const isFirst = wiz.step === 0;
+  const isLast  = wiz.step === 5;
+
+  el.innerHTML = `
+    <div class="wiz-wrap">
+      <div class="wiz-progress">
+        ${dots}
+        <div class="wiz-step-label">${stepLabels[wiz.step]} · ${wiz.step+1} of ${STEP_COUNT}</div>
+      </div>
+      <div class="wiz-panel">${body}</div>
+      <div class="wiz-nav">
+        ${!isFirst ? `<button class="wiz-back" onclick="wizBack()">← Back</button>` : ''}
+        <button class="wiz-next" id="wizNextBtn" onclick="wizNext()">${isLast ? '🏔 Find My Trip' : 'Continue →'}</button>
+      </div>
+    </div>`;
+  wizValidate();
+}
+
+function stepDates() {
+  const fmt = (d) => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'Pick date';
+  return `
+    <div class="wiz-q">When are you heading out?</div>
+    <div class="wiz-hint">We'll check actual snow forecasts for your exact dates.</div>
+    <div class="wiz-date-row">
+      <div class="wiz-date-box sel">
+        <div class="wiz-date-label">🛫 Departure</div>
+        <input type="date" class="wiz-date-input" id="wizStart" value="${wiz.dates.start||''}" onchange="wiz.dates.start=this.value;wizValidate()">
+        <div style="font-size:.6rem;color:var(--steel);margin-top:.2rem">${fmt(wiz.dates.start)}</div>
+      </div>
+      <div class="wiz-date-box sel">
+        <div class="wiz-date-label">🛬 Return</div>
+        <input type="date" class="wiz-date-input" id="wizEnd" value="${wiz.dates.end||''}" onchange="wiz.dates.end=this.value;wizValidate()">
+        <div style="font-size:.6rem;color:var(--steel);margin-top:.2rem">${fmt(wiz.dates.end)}</div>
+      </div>
+    </div>
+    <div style="font-size:.68rem;color:var(--steel);margin-top:.3rem">
+      ${wiz.dates.start && wiz.dates.end ? `${Math.max(0,Math.round((new Date(wiz.dates.end)-new Date(wiz.dates.start))/(864e5)))} night trip` : 'Select both dates to continue'}
+    </div>`;
+}
+
+function stepGroup() {
+  const skillOpts = ['Beginner','Intermediate','Advanced','Expert'];
+  const skills = wiz.group.map(m=>m.skill);
+  const uniqueSkills = [...new Set(skills)];
+  const hasBeginners = skills.includes('Beginner');
+  const hasExperts   = skills.includes('Expert');
+  const isWideRange  = uniqueSkills.length >= 3 || (hasBeginners && hasExperts);
+  const groupSize    = wiz.group.length;
+
+  // Live compatibility assessment based on current group
+  function groupCompatNote() {
+    if(groupSize === 1) return null;
+    if(isWideRange) return { type:'warn', msg:'Wide skill range detected — we\'ll prioritise resorts with strong beginner terrain AND expert runs so nobody waits around.' };
+    if(hasBeginners && uniqueSkills.length === 1) return { type:'info', msg:'All beginners — great! We\'ll look for resorts with gentle learning terrain and a solid ski school.' };
+    if(hasExperts && uniqueSkills.length === 1) return { type:'info', msg:'Expert group — we\'ll prioritise steep terrain, big vert, and powder stashes.' };
+    if(uniqueSkills.length === 2) return { type:'ok', msg:`${uniqueSkills.join(' + ')} mix — most resorts handle this well. We\'ll flag where skill ranges split up.` };
+    return null;
+  }
+
+  // What terrain % each skill needs to be happy
+  const SKILL_NEEDS = {
+    Beginner:     { key:'b', min:15, label:'green runs' },
+    Intermediate: { key:'i', min:30, label:'blue runs' },
+    Advanced:     { key:'a', min:25, label:'black runs' },
+    Expert:       { key:'a', min:35, label:'double-black terrain' },
+  };
+
+  // Show a quick compatibility bar against top 3 resorts
+  const topResorts = allData.length
+    ? [...allData].filter(r=>r.status!=='closed')
+        .sort((a,b)=>(b.new_7day||0)+(b.base_inches||0)*0.1 - ((a.new_7day||0)+(a.base_inches||0)*0.1))
+        .slice(0,3)
+    : [];
+
+  function fitBar(resortName) {
+    const mix = getTerrain(resortName);
+    const score = groupFitScore(resortName, wiz.group);
+    const pct = Math.round(score * 100);
+    const color = pct>=85?'var(--green)':pct>=60?'var(--blue)':'var(--amber)';
+    const issues = [];
+    wiz.group.forEach(m=>{
+      const need = SKILL_NEEDS[m.skill];
+      if(!need) return;
+      const actual = mix[need.key] || 0;
+      if(actual < need.min) issues.push(`not enough ${need.label} for ${m.name}`);
+    });
+    return `
+      <div style="margin-bottom:.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
+          <span style="font-size:.65rem;color:var(--ink);font-weight:500">${resortName}</span>
+          <span style="font-size:.6rem;font-weight:600;color:${color}">${pct}% fit</span>
+        </div>
+        <div style="height:5px;background:var(--pale);border-radius:10px;overflow:hidden;margin-bottom:.2rem">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:10px;transition:width .5s"></div>
+        </div>
+        ${issues.length ? `<div style="font-size:.55rem;color:var(--amber)">⚠ ${issues[0]}</div>` : `<div style="font-size:.55rem;color:var(--green)">✓ Good terrain for everyone</div>`}
+      </div>`;
+  }
+
+  const compat = groupCompatNote();
+
+  return `
+    <div class="wiz-q">Who's joining the trip?</div>
+    <div class="wiz-hint">Add everyone — we'll find resorts with the right terrain for each skill level.</div>
+
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.9rem">
+      ${wiz.group.map((m,i)=>`
+        <div style="background:var(--white);border:1.5px solid ${['var(--blue)','var(--pro)','var(--green)','var(--amber)','var(--red)','var(--slate)'][i%6]};border-radius:14px;padding:.75rem .9rem">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem">
+            <span style="font-size:1.3rem;line-height:1">${m.emoji}</span>
+            <input
+              value="${m.name}"
+              placeholder="Name"
+              maxlength="16"
+              style="font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--ink);border:none;outline:none;background:transparent;flex:1;min-width:0"
+              oninput="wiz.group[${i}].name=this.value"
+            >
+            <span style="font-size:.72rem;font-weight:600;color:var(--steel)">${SKILL_EMOJIS[m.skill]||''}</span>
+            ${i>0?`<button onclick="wiz.group.splice(${i},1);renderWizStep()" style="background:none;border:none;cursor:pointer;font-size:.9rem;color:var(--steel);line-height:1;padding:.1rem">✕</button>`:''}
+          </div>
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+            ${skillOpts.map(s=>{
+              const isSelected = m.skill===s;
+              const colors = {
+                Beginner:'#16a34a', Intermediate:'#2563eb', Advanced:'#1a202c', Expert:'#dc2626'
+              };
+              const bg = isSelected ? (colors[s]||'var(--blue)') : 'var(--off)';
+              const col = isSelected ? '#fff' : 'var(--slate)';
+              return `<button
+                onclick="wiz.group[${i}].skill='${s}';renderWizStep()"
+                style="font-family:'DM Sans',sans-serif;font-size:.62rem;padding:.25rem .65rem;border-radius:100px;border:1.5px solid ${isSelected?(colors[s]||'var(--blue)'):'var(--mist)'};background:${bg};color:${col};cursor:pointer;font-weight:${isSelected?600:400};transition:all .15s"
+              >${SKILL_EMOJIS[s]} ${s}</button>`;
+            }).join('')}
+          </div>
+          <div style="margin-top:.5rem;font-size:.6rem;color:var(--slate);line-height:1.4;padding-top:.4rem;border-top:1px solid var(--pale)">
+            ${{
+              Beginner:'Needs green runs (wide, gentle). Best with a ski school option nearby.',
+              Intermediate:'Comfortable on blues. Ready to explore most of the mountain.',
+              Advanced:'Wants blacks and steep groomed runs. Happy anywhere with good vert.',
+              Expert:'Needs double-blacks, moguls, or off-piste. Will get bored without challenge.'
+            }[m.skill]||''}
+          </div>
+        </div>`).join('')}
+    </div>
+
+    ${wiz.group.length < 8 ? `
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem">
+        ${MEMBER_EMOJIS.slice(0,4).map((emoji,i)=>`
+          <button
+            onclick="wiz.group.push({name:'Person ${wiz.group.length+1}',skill:'Intermediate',emoji:'${emoji}'});renderWizStep()"
+            style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--blue);background:var(--skyBlue,#eff6ff);border:1.5px dashed var(--frost);padding:.35rem .8rem;border-radius:100px;cursor:pointer;display:flex;align-items:center;gap:.3rem"
+          >${i===0?'+ Add person':''}</button>`).slice(0,1).join('')}
+        <button
+          onclick="wiz.group.push({name:'Person ${wiz.group.length+1}',skill:'Intermediate',emoji:MEMBER_EMOJIS[wiz.group.length%MEMBER_EMOJIS.length]});renderWizStep()"
+          style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--blue);background:#eff6ff;border:1.5px dashed var(--frost);padding:.35rem .9rem;border-radius:100px;cursor:pointer"
+        >+ Add person</button>
+      </div>` : ''}
+
+    ${compat ? `
+      <div style="background:${compat.type==='warn'?'#fffbeb':compat.type==='info'?'#eff6ff':'#f0fdf4'};border:1px solid ${compat.type==='warn'?'#fde047':compat.type==='info'?'#bfdbfe':'#86efac'};border-radius:12px;padding:.65rem .85rem;font-size:.7rem;color:${compat.type==='warn'?'var(--amber)':compat.type==='info'?'var(--blue)':'var(--green)'};line-height:1.5;margin-bottom:.9rem">
+        ${compat.type==='warn'?'⚠️':compat.type==='info'?'💡':'✓'} ${compat.msg}
+      </div>` : ''}
+
+    ${groupSize > 1 && topResorts.length ? `
+      <div style="font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:.55rem">
+        Live terrain fit preview — current top resorts
+      </div>
+      <div style="background:var(--white);border:1px solid var(--pale);border-radius:12px;padding:.75rem .9rem">
+        ${topResorts.map(r=>fitBar(r.name)).join('')}
+        <div style="font-size:.56rem;color:var(--steel);margin-top:.3rem">Updates as you adjust skill levels · Full analysis runs after setup</div>
+      </div>` : ''}`;
+}
+
+
+function stepBudget() {
+  return `
+    <div class="wiz-q">What's your budget per person per day?</div>
+    <div class="wiz-hint">Includes lift ticket estimate. We'll show projected costs for each resort.</div>
+    <div class="wiz-chips" style="flex-direction:column;gap:.5rem">
+      ${BUDGETS.map(b=>`
+        <button class="wiz-chip ${wiz.budget===b.id?'sel':''}" style="border-radius:12px;padding:.65rem 1rem;justify-content:flex-start;gap:.6rem" onclick="wiz.budget='${b.id}';renderWizStep()">
+          <span style="font-size:1.1rem">${b.emoji}</span>
+          <div style="text-align:left">
+            <div style="font-size:.82rem;font-weight:${wiz.budget===b.id?600:400}">${b.label}</div>
+            <div style="font-size:.62rem;opacity:.7;margin-top:.05rem">${b.sub}</div>
+          </div>
+          ${wiz.budget===b.id?'<span style="margin-left:auto;font-size:.8rem">✓</span>':''}
+        </button>`).join('')}
+    </div>`;
+}
+
+function stepDistance() {
+  const hasLoc = !!userLocation;
+  return `
+    <div class="wiz-q">How far are you willing to drive?</div>
+    <div class="wiz-hint">${hasLoc ? `Based on your location${userLocation.city?` in ${userLocation.city}`:''}. Only matching resorts will be shown.` : 'Enable location for drive-time filtering, or pick any distance.'}</div>
+    <div class="wiz-chips" style="flex-direction:column;gap:.5rem">
+      ${DRIVE_OPTIONS.map(o=>`
+        <button class="wiz-chip ${wiz.maxDriveHours===o.h?'sel':''}" style="border-radius:12px;padding:.65rem 1rem;justify-content:flex-start;gap:.6rem" onclick="wiz.maxDriveHours=${o.h};renderWizStep()">
+          <span style="font-size:1.1rem">${o.emoji}</span>
+          <div style="text-align:left">
+            <div style="font-size:.82rem;font-weight:${wiz.maxDriveHours===o.h?600:400}">${o.label}</div>
+            ${hasLoc&&o.h<99?`<div style="font-size:.62rem;opacity:.7">${wizResortsInRange(o.h)} resorts in range</div>`:''}
+          </div>
+          ${wiz.maxDriveHours===o.h?'<span style="margin-left:auto;font-size:.8rem">✓</span>':''}
+        </button>`).join('')}
+    </div>
+    ${!hasLoc?`<button onclick="requestLocation();setTimeout(renderWizStep,1500)" style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--blue);background:none;border:none;cursor:pointer;padding:.5rem 0;display:block">📍 Enable location for accurate drive times</button>`:''}`;
+}
+
+function wizResortsInRange(maxHours) {
+  if(!userLocation) return '?';
+  return allData.filter(r=>{
+    const coords = RESORT_COORDS[r.name];
+    if(!coords) return false;
+    const dist = haversineKm(userLocation.lat,userLocation.lng,coords[0],coords[1]);
+    const hrs = dist*0.621371/50; // rough 50mph average
+    return hrs <= maxHours;
+  }).length;
+}
+
+function stepRegionPass() {
+  const regions = [
+    {id:'north_tahoe',label:'North Shore',flag:'🏔'},
+    {id:'south_tahoe',label:'South Shore',flag:'🌊'},
+    {id:'nevada',label:'Nevada Side',flag:'🎰'},
+  ];
+  const passes = [
+    {id:'epic', label:'Epic Pass',  emoji:'⚡'},
+    {id:'ikon', label:'Ikon Pass',  emoji:'🏔'},
+    {id:'none', label:'No Pass',    emoji:'🎟️'},
+  ];
+  const toggleRegion = (id) => {
+    const idx = wiz.regions.indexOf(id);
+    if(idx>=0) wiz.regions.splice(idx,1); else wiz.regions.push(id);
+    renderWizStep();
+  };
+  const togglePass = (id) => {
+    const idx = wiz.passes.indexOf(id);
+    if(idx>=0) wiz.passes.splice(idx,1); else wiz.passes.push(id);
+    renderWizStep();
+  };
+  return `
+    <div class="wiz-q">Any region or pass preference?</div>
+    <div class="wiz-hint">Select multiple or leave blank for all resorts.</div>
+    <div style="font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.45rem">Region</div>
+    <div class="wiz-chips" style="margin-bottom:1rem">
+      ${regions.map(r=>`<button class="wiz-chip multi ${wiz.regions.includes(r.id)?'sel':''}" onclick="(${toggleRegion.toString()})('${r.id}')">${r.flag} ${r.label}</button>`).join('')}
+    </div>
+    <div style="font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.45rem">Pass</div>
+    <div class="wiz-chips">
+      ${passes.map(p=>`<button class="wiz-chip multi ${wiz.passes.includes(p.id)?'sel':''}" onclick="(${togglePass.toString()})('${p.id}')">${p.emoji} ${p.label}</button>`).join('')}
+    </div>`;
+}
+
+function stepReview() {
+  const nights = wiz.dates.start&&wiz.dates.end ? Math.max(0,Math.round((new Date(wiz.dates.end)-new Date(wiz.dates.start))/(864e5))) : '?';
+  const budgetLabel = BUDGETS.find(b=>b.id===wiz.budget)?.label||'Any';
+  const driveLabel = DRIVE_OPTIONS.find(o=>o.h===wiz.maxDriveHours)?.label||'Any distance';
+  const fmt = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '?';
+  return `
+    <div class="wiz-q">Ready to find your perfect trip?</div>
+    <div class="wiz-hint">Here's your trip summary. Hit 'Find My Trip' and we'll analyse all ${allData.filter(r=>r.status!=='closed').length} open resorts.</div>
+    <div style="background:var(--off);border:1px solid var(--pale);border-radius:14px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.55rem">
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">📅 Dates</span><strong>${fmt(wiz.dates.start)} → ${fmt(wiz.dates.end)} (${nights} nights)</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">👥 Group</span><strong>${wiz.group.map(m=>`${m.emoji} ${m.name} (${m.skill})`).join(' · ')}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">💳 Budget</span><strong>${budgetLabel}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">🚗 Drive</span><strong>${driveLabel}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">📍 Regions</span><strong>${wiz.regions.length?wiz.regions.map(r=>REGION_LABELS[r]||r).join(', '):'All regions'}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem"><span style="color:var(--steel)">🎿 Pass</span><strong>${wiz.passes.length?wiz.passes.join(', ').toUpperCase():'Any'}</strong></div>
+    </div>`;
+}
+
+function wizValidate() {
+  const btn = document.getElementById('wizNextBtn');
+  if(!btn) return;
+  let ok = true;
+  if(wiz.step===0) ok = !!(wiz.dates.start && wiz.dates.end && wiz.dates.end >= wiz.dates.start);
+  if(wiz.step===1) ok = wiz.group.length > 0;
+  if(wiz.step===2) ok = !!wiz.budget;
+  if(wiz.step===3) ok = wiz.maxDriveHours !== null;
+  btn.disabled = !ok;
+}
+
+function wizBack() {
+  if(wiz.step > 0) { wiz.step--; renderWizStep(); }
+}
+
+function wizNext() {
+  if(wiz.step < STEP_COUNT-1) { wiz.step++; renderWizStep(); }
+  else runWizardPlanner();
+}
+
+async function runWizardPlanner() {
+  const el = document.getElementById('plannerContent');
+  const loadSteps = ['Filtering resorts by your criteria…','Checking snowfall forecasts…','Calculating drive times…','Building your itinerary…','Almost ready…'];
+  let loadIdx = 0;
+  el.innerHTML = `<div class="wiz-loading">
+    <span class="wiz-loading-icon">❄</span>
+    <div class="wiz-loading-label">Planning your perfect ski trip…</div>
+    <div class="wiz-loading-steps" id="loadSteps">
+      ${loadSteps.map((s,i)=>`<div class="wiz-loading-step ${i===0?'active':''}" id="ls${i}">◦ ${s}</div>`).join('')}
+    </div>
+  </div>`;
+
+  const ticker = setInterval(()=>{
+    const prev = document.getElementById('ls'+loadIdx);
+    if(prev) { prev.classList.remove('active'); prev.classList.add('done'); prev.textContent='✓ '+loadSteps[loadIdx]; }
+    loadIdx = Math.min(loadIdx+1, loadSteps.length-1);
+    const cur = document.getElementById('ls'+loadIdx);
+    if(cur) cur.classList.add('active');
+  }, 1400);
+
+  try {
+    // 1. Filter candidates
+    let candidates = [...allData].filter(r=>r.status!=='closed');
+
+    // Region filter
+    if(wiz.regions.length) candidates = candidates.filter(r=>wiz.regions.includes(r.region));
+
+    // Pass filter
+    if(wiz.passes.length) {
+      const wantFree = wiz.passes.includes('none');
+      candidates = candidates.filter(r=>
+        wiz.passes.includes(r.pass) || (wantFree && (!r.pass||r.pass==='none'))
+      );
+    }
+
+    // Drive time filter
+    if(wiz.maxDriveHours && wiz.maxDriveHours < 99 && userLocation) {
+      candidates = candidates.filter(r=>{
+        const coords = RESORT_COORDS[r.name];
+        if(!coords) return true;
+        const dist = haversineKm(userLocation.lat,userLocation.lng,coords[0],coords[1]);
+        return (dist*0.621371/50) <= wiz.maxDriveHours;
+      });
+    }
+
+    // Budget filter — lift ticket estimate
+    if(wiz.budget && wiz.budget !== 'any') {
+      candidates = candidates.filter(r=>{
+        const price = LIFTPRICE(r.name);
+        if(wiz.budget==='low')  return price <= 150;
+        if(wiz.budget==='mid')  return price <= 300;
+        return true; // high = all
+      });
+    }
+
+    if(!candidates.length) candidates = [...allData].filter(r=>r.status!=='closed').slice(0,20);
+
+    // Sort by composite score — now includes group fit and trip-date forecast
+    const nights = Math.max(1,Math.round((new Date(wiz.dates.end)-new Date(wiz.dates.start))/(864e5)));
+    const scored = candidates.map(r=>{
+      const tripFc   = forecastSnowForDates(r, wiz.dates.start, wiz.dates.end);
+      const fcSnow   = tripFc.total !== null ? tripFc.total : (r._omForecastTotal || r.new_7day || 0);
+      const snow     = fcSnow * 4 + (r.new_24h||0) * 3;
+      const base     = (r.base_inches||0) * 0.12;
+      const lifts    = ((r.lifts_open||0)/(r.lifts_total||1)) * 15;
+      const fit      = groupFitScore(r.name, wiz.group) * 20; // up to 20 points for group fit
+      const drives   = (() => {
+        if(!userLocation||!RESORT_COORDS[r.name]) return 0;
+        const dist = haversineKm(userLocation.lat,userLocation.lng,...RESORT_COORDS[r.name]);
+        const hrs = dist*0.621371/50;
+        return Math.max(0, 12-hrs*2);
+      })();
+      // Pass bonus: if user's pass works here, +10
+      const passBonus = wiz.passes.length && wiz.passes.includes(r.pass) ? 10 : 0;
+      return { ...r, _score: snow+base+lifts+fit+drives+passBonus, _tripFc: tripFc };
+    }).sort((a,b)=>b._score-a._score);
+
+    const top5 = scored.slice(0,5);
+
+    // 2. Build drive times + group fit + pass savings for top 5
+    const driveTimes = {};
+    const groupFits  = {};
+    const passSavings = {};
+    const tripForecasts = {};
+    top5.forEach(r=>{
+      if(userLocation && RESORT_COORDS[r.name]) {
+        const dist = haversineKm(userLocation.lat,userLocation.lng,...RESORT_COORDS[r.name]);
+        driveTimes[r.name] = estimateDriveTime(dist, r.new_24h||0);
+      }
+      const fit = groupFitScore(r.name, wiz.group);
+      groupFits[r.name] = groupFitLabel(fit);
+      passSavings[r.name] = calcPassSavings(r.name, r.pass, wiz.passes, nights);
+      tripForecasts[r.name] = r._tripFc;
+    });
+
+    // 3. Get AI recommendation with full rich context
+    const groupDesc = wiz.group.map(m=>`${m.name} (${m.skill})`).join(', ');
+    const skillLevels = [...new Set(wiz.group.map(m=>m.skill))];
+    const budgetLabel = BUDGETS.find(b=>b.id===wiz.budget)?.label||'any budget';
+    const fmtDate = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+
+    const prompt = `You are an expert ski trip planner. Plan a perfect trip with these exact requirements:
+
+TRIP DETAILS:
+- Dates: ${fmtDate(wiz.dates.start)} to ${fmtDate(wiz.dates.end)} (${nights} nights, ${nights+1} days on snow)
+- Group: ${groupDesc} (${wiz.group.length} people)
+- Skill levels present: ${skillLevels.join(', ')}
+- Budget: ${budgetLabel} per person per day (lift only)
+- Max drive: ${wiz.maxDriveHours>=99?'no limit':wiz.maxDriveHours+' hours max'}
+- Departing from: ${userLocation?.city||'their location'}
+- Pass: ${wiz.passes.length ? wiz.passes.join(' or ').toUpperCase() : 'none'}
+
+TOP RESORT OPTIONS (pre-filtered and scored):
+${JSON.stringify(top5.map(r=>({
+  name: r.name, state: r.state, pass: r.pass,
+  current_base_inches: r.base_inches,
+  last_7day_snow: r.new_7day,
+  overnight_snow: r.new_24h,
+  condition: r.condition,
+  lifts_open: r.lifts_open, lifts_total: r.lifts_total,
+  lift_price_per_day: getLiftPrice(r.name),
+  drive_time: driveTimes[r.name]?.display || 'unknown',
+  drive_miles: driveTimes[r.name]?.distMi || null,
+  snow_forecast_trip_dates: tripForecasts[r.name]?.total !== null
+    ? tripForecasts[r.name]?.total + '" expected during trip'
+    : (r._omForecastTotal || 0) + '" next 7 days',
+  best_snow_day: tripForecasts[r.name]?.bestDay?.day || null,
+  group_fit: groupFits[r.name],
+  pass_works_here: wiz.passes.includes(r.pass),
+  terrain_mix: getTerrain(r.name),
+})), null, 2)}
+
+Return ONLY a JSON object (no markdown):
+{
+  "top": string (exact resort name from the list),
+  "reason": string (3 specific sentences — reference the actual snow numbers, drive time, and why it fits this group),
+  "group_note": string (name each person and their specific terrain — e.g. 'Sarah will love the 27% beginner terrain on Lower Liftline while Mike and Jordan hit the expert chutes'),
+  "itinerary": [
+    {"time": "Fri 5pm", "icon": "🚗", "title": "Depart", "detail": "Leave by X to arrive by Y, book dinner in advance"},
+    {"time": "Sat 8am", "icon": "☕", "title": "Mountain morning", "detail": "..."},
+    {"time": "Sat 9am", "icon": "⛷️", "title": "First chair", "detail": "..."},
+    {"time": "Sat eve", "icon": "🍺", "title": "Après ski", "detail": "..."},
+    {"time": "Sun 8am", "icon": "🎿", "title": "Final laps", "detail": "..."},
+    {"time": "Sun noon", "icon": "🏡", "title": "Drive home", "detail": "..."}
+  ],
+  "ranked": [
+    {
+      "name": string,
+      "score": number 0-100,
+      "tagline": string (5 words max, specific e.g. 'Fresh 6 inches Wednesday'),
+      "lift_price_est": number,
+      "drive_display": string,
+      "snow_during_trip": string (e.g. '4" forecast Wed–Thu'),
+      "group_fit": "perfect"|"good"|"ok",
+      "pass_savings": string or null
+    }
+  ],
+  "budget_breakdown": {
+    "lift_tickets": number (per person per day for top pick),
+    "lodging_est": number (per person per night, realistic for this resort area),
+    "food_est": number (per person per day, food + drinks),
+    "total_trip_est": number (per person all-in estimate)
+  },
+  "leave_by": string (specific e.g. 'Leave Friday by 5pm — arrive by 9pm'),
+  "snow_tip": string (specific insight about snow conditions for their exact dates at the top resort),
+  "pro_tip": string (1 practical tip about this resort specifically — parking, first tracks, hidden terrain, etc)
+}`;
+
+    const res = await fetch('/api/claude',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await res.json();
+    wiz.result = JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    const top = scored[0] || allData[0];
+    wiz.result = {
+      top: top?.name||'Steamboat',
+      reason: 'Based on current snowpack, recent snowfall, and your group composition, this resort offers the best combination of terrain variety and conditions for your dates.',
+      group_note: 'Good terrain mix for all skill levels.',
+      itinerary: [
+        {time:'Day 1',icon:'🚗',title:'Drive & Check In',detail:'Depart early, arrive in time for dinner'},
+        {time:'Day 2',icon:'⛷️',title:'Full Ski Day',detail:'First chair to last chair — explore the mountain'},
+        {time:'Day 3',icon:'🎿',title:'Final Morning',detail:'Morning laps before the drive home'},
+      ],
+      ranked: scored.slice(0,5).map((r,i)=>({
+        name:r.name, score:Math.round(95-i*10), tagline:'Great conditions',
+        lift_price_est:LIFTPRICE(r.name), drive_display:driveTimes[r.name]?.display||'?',
+        snow_forecast:`${r.new_7day||0}" last 7 days`, group_fit:'good', pass_savings:null
+      })),
+      budget_breakdown:{ lift_tickets:getLiftPrice(top?.name||''), lodging_est:200, food_est:80, total_trip_est:(getLiftPrice(top?.name||'')*nights + 200*nights + 80*nights) },
+      leave_by:'Leave early Friday morning', snow_tip:'Check resort website for updated base depth before departure.', pro_tip:'Book lodging early — mountain towns fill up fast on weekends.'
+    };
+  }
+
+  clearInterval(ticker);
+  renderWizResults();
+}
+
+function renderWizResults() {
+  const el = document.getElementById('plannerContent');
+  const r = wiz.result;
+  if(!r) { renderPlannerPage(); return; }
+
+  const topResort = allData.find(x=>x.name===r.top) || {};
+  const nights = Math.max(1,Math.round((new Date(wiz.dates.end)-new Date(wiz.dates.start))/(864e5)));
+  const fmt = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '?';
+  const fitColor = (f) => f==='perfect'?'var(--green)':f==='good'?'var(--blue)':'var(--amber)';
+
+  // Build forecast strip for top resort
+  const fc = topResort._omForecast || [];
+  const fcHtml = fc.length ? `
+    <div class="wiz-fc-strip">
+      ${fc.slice(0,7).map(d=>`
+        <div class="wiz-fc-day">
+          <div class="wiz-fc-day-name">${d.day}</div>
+          <div class="wiz-fc-icon">${d.icon}</div>
+          <div class="wiz-fc-snow ${d.snow_inches>0?'':'dry'}">${d.snow_inches>0?d.snow_inches+'"':'—'}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  el.innerHTML = `<div class="wiz-results">
+
+    <!-- TOP PICK -->
+    <div class="wiz-top-card">
+      <div class="wiz-top-label">🏆 Top pick for your trip</div>
+      <div class="wiz-top-name">${r.top}</div>
+      <div class="wiz-top-state">${topResort.state||''} · ${REGION_LABELS[topResort.region]||''} ${topResort.pass&&topResort.pass!=='none'?'· '+topResort.pass.toUpperCase()+' Pass':''}</div>
+      <div class="wiz-top-stats">
+        ${topResort.base_inches?`<div class="wiz-stat-pill"><strong>${topResort.base_inches}"</strong> base</div>`:''}
+        ${topResort.new_7day?`<div class="wiz-stat-pill"><strong>${topResort.new_7day}"</strong> last 7 days</div>`:''}
+        ${topResort.summit_temp_f?`<div class="wiz-stat-pill"><strong>${topResort.summit_temp_f}°F</strong> summit</div>`:''}
+        ${r.budget_breakdown?.lift_tickets?`<div class="wiz-stat-pill"><strong>~$${r.budget_breakdown.lift_tickets}</strong>/day lift</div>`:''}
+        ${r.leave_by?`<div class="wiz-stat-pill">🚗 ${r.leave_by}</div>`:''}
+      </div>
+      <div class="wiz-top-reason">${r.reason}</div>
+      ${r.group_note?`<div style="font-size:.7rem;color:var(--blue);background:rgba(37,99,235,.06);border-radius:8px;padding:.4rem .7rem;margin-bottom:.75rem">👥 ${r.group_note}</div>`:''}
+
+      <!-- PER-PERSON TERRAIN BREAKDOWN -->
+      ${wiz.group.length > 1 ? (() => {
+        const mix = getTerrain(r.top);
+        const SKILL_NEEDS = {
+          Beginner:     { key:'b', label:'Green runs', color:'#16a34a', bgColor:'#dcfce7' },
+          Intermediate: { key:'i', label:'Blue runs',  color:'#2563eb', bgColor:'#dbeafe' },
+          Advanced:     { key:'a', label:'Black runs',  color:'#1a202c', bgColor:'#f1f5f9' },
+          Expert:       { key:'a', label:'Double-black',color:'#dc2626', bgColor:'#fee2e2' },
+        };
+        const rows = wiz.group.map(m => {
+          const need = SKILL_NEEDS[m.skill] || SKILL_NEEDS.Intermediate;
+          const pct = mix[need.key] || 0;
+          const ok = (m.skill==='Expert'?pct>=35:m.skill==='Advanced'?pct>=25:m.skill==='Beginner'?pct>=15:pct>=30);
+          return `<div style="display:flex;align-items:center;gap:.55rem;padding:.35rem 0;border-bottom:1px solid var(--pale)">
+            <span style="font-size:.95rem;flex-shrink:0">${m.emoji}</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;margin-bottom:.15rem">
+                <span style="font-size:.68rem;font-weight:500;color:var(--ink)">${m.name}</span>
+                <span style="font-size:.6rem;color:${need.color};font-weight:600">${pct}% ${need.label}</span>
+              </div>
+              <div style="height:4px;background:var(--pale);border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${Math.min(pct*2,100)}%;background:${need.color};border-radius:4px"></div>
+              </div>
+            </div>
+            <span style="font-size:.75rem;flex-shrink:0">${ok?'✅':'⚠️'}</span>
+          </div>`;
+        }).join('');
+        return `<div style="background:var(--off);border:1px solid var(--pale);border-radius:12px;padding:.65rem .8rem;margin-bottom:.9rem">
+          <div style="font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.45rem">Terrain fit · ${r.top}</div>
+          ${rows}
+          <div style="font-size:.56rem;color:var(--steel);margin-top:.4rem">% of marked runs at this resort · ✅ = meets needs · ⚠️ = limited terrain for this skill</div>
+        </div>`;
+      })() : ''}
+      <div class="wiz-top-actions">
+        <a class="wiz-action-btn wiz-action-primary" href="${topResort.camUrl||'#'}" target="_blank">📷 View Resort</a>
+        <button class="wiz-action-btn wiz-action-sec" onclick="showPage('conditions',null);setTimeout(()=>{document.getElementById('searchInput').value='${r.top}';applyFilters()},100)">View Conditions →</button>
+      </div>
+    </div>
+
+    <!-- FORECAST STRIP -->
+    ${fcHtml ? `<div style="background:var(--white);border:1px solid var(--pale);border-radius:14px;overflow:hidden;margin-bottom:1rem;box-shadow:var(--shadow)">
+      <div style="padding:.6rem .8rem .2rem;font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)">⛅ 7-Day Forecast · ${r.top}</div>
+      ${fcHtml}
+    </div>` : ''}
+
+    <!-- ITINERARY -->
+    ${r.itinerary?.length ? `
+    <div class="wiz-itinerary">
+      <div class="wiz-itin-head">📋 Weekend Itinerary · ${fmt(wiz.dates.start)} – ${fmt(wiz.dates.end)}</div>
+      ${r.itinerary.map(row=>`
+        <div class="wiz-itin-row">
+          <div class="wiz-itin-time">${row.time||''}</div>
+          <div class="wiz-itin-icon">${row.icon||'•'}</div>
+          <div class="wiz-itin-text">
+            <div class="wiz-itin-main">${row.title||''}</div>
+            <div class="wiz-itin-sub">${row.detail||''}</div>
+          </div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <!-- COMPARISON CARDS -->
+    <div style="font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.6rem">All Options Compared</div>
+    <div class="wiz-compare">
+      ${(r.ranked||[]).map((resort,i)=>{
+        const rd = allData.find(x=>x.name===resort.name)||{};
+        const maxSnow = Math.max(...(r.ranked||[]).map(x=>allData.find(y=>y.name===x.name)?.new_7day||0),1);
+        const fitColor = (f) => f==='perfect'?'var(--green)':f==='good'?'var(--blue)':'var(--amber)';
+        const fitEmoji = (f) => f==='perfect'?'✓✓':f==='good'?'✓':'~';
+        return `<div class="wiz-cmp-card ${i===0?'pick1':''}">
+          <div class="wiz-cmp-head">
+            <div class="wiz-cmp-rank">${i===0?'🏆 Best pick':`#${i+1}`}</div>
+            <div class="wiz-cmp-name">${resort.name}</div>
+            <div class="wiz-cmp-state">${rd.state||''} ${rd.pass&&rd.pass!=='none'?'· '+rd.pass.toUpperCase():''}</div>
+          </div>
+          <div class="wiz-cmp-body">
+            <div class="wiz-cmp-row"><span class="wiz-cmp-label">Base</span><span class="wiz-cmp-val">${rd.base_inches||'?'}"</span></div>
+            <div class="wiz-cmp-row"><span class="wiz-cmp-label">7-day snow</span><span class="wiz-cmp-val good">${rd.new_7day||0}"</span></div>
+            <div style="padding:.15rem 0"><div class="wiz-snow-bar" style="width:${Math.round((rd.new_7day||0)/maxSnow*100)+'%'}"></div></div>
+            ${resort.snow_during_trip?`<div class="wiz-cmp-row"><span class="wiz-cmp-label">Trip snow</span><span class="wiz-cmp-val" style="color:var(--blue)">${resort.snow_during_trip}</span></div>`:''}
+            <div class="wiz-cmp-row"><span class="wiz-cmp-label">Drive</span><span class="wiz-cmp-val">${resort.drive_display||'?'}</span></div>
+            <div class="wiz-cmp-row"><span class="wiz-cmp-label">Lift/day</span><span class="wiz-cmp-val">~$${resort.lift_price_est||'?'}</span></div>
+            <div class="wiz-cmp-row"><span class="wiz-cmp-label">Group fit</span><span class="wiz-cmp-val" style="color:${fitColor(resort.group_fit)}">${fitEmoji(resort.group_fit)} ${resort.group_fit||'?'}</span></div>
+            ${resort.tagline?`<div style="font-size:.62rem;color:var(--blue);padding:.3rem 0;border-top:1px solid var(--pale);margin-top:.2rem">${resort.tagline}</div>`:''}
+            ${resort.pass_savings?`<div style="font-size:.6rem;color:var(--green);padding:.2rem 0">${resort.pass_savings}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- BUDGET BREAKDOWN -->
+    ${r.budget_breakdown ? `
+    <div style="background:var(--white);border:1px solid var(--pale);border-radius:14px;padding:.9rem 1rem;margin-bottom:1rem;box-shadow:var(--shadow)">
+      <div style="font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.6rem">💳 Budget Estimate · Per Person · ${nights} nights</div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--pale)"><span style="color:var(--steel)">🎿 Lift tickets (${nights+1} ski days)</span><strong>~$${Math.round((r.budget_breakdown.lift_tickets||0)*(nights+1))}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--pale)"><span style="color:var(--steel)">🏨 Lodging (${nights} nights)</span><strong>~$${Math.round((r.budget_breakdown.lodging_est||0)*nights)}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--pale)"><span style="color:var(--steel)">🍔 Food & drinks (${nights+1} days)</span><strong>~$${Math.round((r.budget_breakdown.food_est||80)*(nights+1))}</strong></div>
+      ${wiz.passes.length && wiz.passes.some(p=>p!=='none') && allData.find(x=>x.name===r.top)?.pass && wiz.passes.includes(allData.find(x=>x.name===r.top).pass) ?
+        `<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--pale);color:var(--green)"><span>🎿 ${wiz.passes[0].charAt(0).toUpperCase()+wiz.passes[0].slice(1)} Pass savings</span><strong>−$${Math.round((r.budget_breakdown.lift_tickets||0)*(nights+1))}</strong></div>` : ''
+      }
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.5rem 0;font-weight:600"><span>Total estimate</span><span style="color:var(--blue)">~$${r.budget_breakdown.total_trip_est||'?'}</span></div>
+      <div style="font-size:.6rem;color:var(--steel);margin-top:.1rem">Excludes rentals, lessons, gas, and incidentals. Lodging varies widely by property and season.</div>
+    </div>` : ''}
+
+    <!-- SNOW TIP + PRO TIP -->
+    ${r.snow_tip?`<div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid var(--frost);border-radius:12px;padding:.75rem 1rem;margin-bottom:.6rem;font-size:.75rem;color:#1d4ed8;line-height:1.5">❄️ <strong>Snow outlook for your dates:</strong> ${r.snow_tip}</div>`:''}
+    ${r.pro_tip?`<div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.75rem;color:#92400e;line-height:1.5">💡 <strong>Local tip:</strong> ${r.pro_tip}</div>`:''}
+
+    <!-- TERRAIN MIX for top resort -->
+    ${(() => {
+      const mix = getTerrain(r.top);
+      const group = wiz.group;
+      const skills = [...new Set(group.map(m=>m.skill))];
+      return `<div style="background:var(--white);border:1px solid var(--pale);border-radius:14px;padding:.9rem 1rem;margin-bottom:1rem;box-shadow:var(--shadow)">
+        <div style="font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:.7rem">🗺 Terrain Mix · ${r.top}</div>
+        <div style="display:flex;flex-direction:column;gap:.45rem">
+          ${[['🟢','Beginner',mix.b],['🔵','Intermediate',mix.i],['⚫','Advanced / Expert',mix.a]].map(([em,label,pct])=>{
+            const hasThis = (label.includes('Beginner')&&skills.includes('Beginner'))||(label.includes('Intermediate')&&skills.includes('Intermediate'))||((label.includes('Advanced')||label.includes('Expert'))&&(skills.includes('Advanced')||skills.includes('Expert')));
+            return `<div>
+              <div style="display:flex;justify-content:space-between;font-size:.65rem;margin-bottom:.2rem">
+                <span style="color:${hasThis?'var(--ink)':'var(--steel)'};font-weight:${hasThis?500:400}">${em} ${label}${hasThis?' ← your group':''}</span>
+                <span style="font-family:'DM Mono',monospace;color:var(--slate)">${pct}%</span>
+              </div>
+              <div style="height:5px;background:var(--pale);border-radius:5px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;border-radius:5px;background:${label.includes('Beginner')?'#22c55e':label.includes('Inter')?'#3b82f6':'#374151'}"></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    })()}
+
+    <button class="wiz-restart" onclick="renderPlannerPage()">← Plan a different trip</button>
+  </div>`;
+}
+
+// ─── ALERTS PAGE ───
+function renderAlertsPage() {
+  const recentPowder=allData.filter(r=>r.new_24h>=4).slice(0,3);
+  const bigWeek=allData.filter(r=>r.new_7day>=12).slice(0,2);
+  document.getElementById('alertsContent').innerHTML=`
+    <div class="alerts-section">
+      <div class="threshold-row">
+        <div><div class="threshold-label">Powder alert threshold</div><div class="threshold-sub">Notify me when overnight snowfall exceeds</div></div>
+        <select class="threshold-select"><option>4"</option><option selected>6"</option><option>8"</option><option>12"</option></select>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Push notifications</div>
+        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Email alerts</div>
+        <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Watchlist resorts only</div>
+        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+      </div>
+
+      <div style="font-size:.62rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin:1.25rem 0 .75rem">Recent Alerts</div>
+
+      ${recentPowder.map(r=>`<div class="alert-card">
+        <div class="alert-icon">❄️</div>
+        <div class="alert-body">
+          <h4>${r.name} <span class="alert-new">New</span></h4>
+          <p>${r.new_24h}" of fresh snow overnight · Base now ${r.base_inches}" · ${r.condition} conditions</p>
+          <div class="alert-time">Today · ${r.state}</div>
+        </div>
+      </div>`).join('')}
+
+      ${bigWeek.map(r=>`<div class="alert-card">
+        <div class="alert-icon">🏔</div>
+        <div class="alert-body">
+          <h4>${r.name} — Big Week</h4>
+          <p>${r.new_7day}" total snowfall in the last 7 days · Outstanding ${r.condition} conditions</p>
+          <div class="alert-time">This week · ${r.state}</div>
+        </div>
+      </div>`).join('')}
+
+      ${(!recentPowder.length&&!bigWeek.length)?`<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-msg">No fresh powder alerts today</div><div class="empty-hint">Alerts will appear here when your threshold is hit</div></div>`:''}
+    </div>`;
+}
+
+
+// ─── DRIVE TIME & ROAD CONDITIONS ───
+
+function requestLocation() {
+  if(locationRequested) return;
+  locationRequested = true;
+  if(!navigator.geolocation) {
+    showLocationError('Geolocation not supported by your browser.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, city: null };
+      reverseGeocode(userLocation.lat, userLocation.lng);
+      applyFilters(); // re-render cards with drive rows
+      // Load drive times after cards render
+      setTimeout(loadAllDriveTimes, 300);
+    },
+    err => {
+      locationRequested = false;
+      showLocationError('Location access denied. Enable it in your browser settings.');
+    },
+    { timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+function showLocationError(msg) {
+  const b = document.createElement('div');
+  b.style.cssText='position:fixed;bottom:calc(var(--bottom-h)+1rem);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:"DM Sans",sans-serif;font-size:.72rem;padding:.55rem 1.1rem;border-radius:100px;z-index:300;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+  b.textContent = msg;
+  document.body.appendChild(b);
+  setTimeout(()=>b.remove(), 4000);
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const d = await r.json();
+    const city = d.address?.city || d.address?.town || d.address?.county || 'your location';
+    userLocation.city = city;
+    // Update all drive sublabels
+    document.querySelectorAll('.drive-sublabel').forEach(el => el.textContent = 'from ' + city);
+  } catch(e) { /* silently fail */ }
+}
+
+// RESORT COORDINATES (lat/lng for routing)
+const RESORT_COORDS = {
+  "Palisades Tahoe":     [39.1966,-120.2357],
+  "Northstar California":[39.2746,-120.1209],
+  "Sugar Bowl":          [39.2975,-120.3496],
+  "Boreal":              [39.3331,-120.3519],
+  "Donner Ski Ranch":    [39.3179,-120.3440],
+  "Soda Springs":        [39.3163,-120.3738],
+  "Heavenly":            [38.9353,-119.9400],
+  "Kirkwood":            [38.6847,-120.0657],
+  "Sierra-at-Tahoe":     [38.7986,-120.0807],
+  "Mt. Rose":            [39.3139,-119.8817],
+  "Diamond Peak":        [39.2697,-119.8920],
+};
+
+// Chain control region info (for display labels & DOT attribution)
+const CHAIN_REGIONS = {
+  california: { highway: "I-80 / US-50 / SR-89", agency: "Caltrans" },
+  colorado:   { highway: "I-70 / US-6 / US-40",  agency: "CDOT" },
+  utah:       { highway: "I-80 / UT-190 / US-189",agency: "UDOT" },
+  wyoming:    { highway: "US-89 / WY-22",         agency: "WYDOT" },
+  montana:    { highway: "US-191 / US-89",         agency: "MDT" },
+  idaho:      { highway: "ID-21 / US-93",          agency: "ITD" },
+  pacific_nw: { highway: "US-2 / US-26 / OR-35",  agency: "WSDOT/ODOT" },
+  northeast:  { highway: "I-89 / VT-108 / NY-86",  agency: "VTrans/NYSDOT" },
+};
+
+// Key CA mountain highways and the resorts they serve
+const CA_HIGHWAY_RESORT_MAP = {
+  "I-80":    ["Palisades Tahoe","Northstar California","Sugar Bowl","Boreal","Donner Ski Ranch"],
+  "US-50":   ["Heavenly","Sierra-at-Tahoe","Kirkwood"],
+  "SR-89":   ["Palisades Tahoe","Northstar California","Diamond Peak","Mt. Rose"],
+  "HWY 395": ["Mammoth Mountain","June Mountain"],
+  "HWY 18":  ["Bear Mountain","Snow Summit"],
+};
+
+// Live Caltrans chain control data (cached, fetched once per session)
+let caltransData = null;       // array of { highway, location, level, description, coords }
+let caltransFetchTime = 0;
+let caltransFetching = false;
+const CALTRANS_CACHE_MS = 5 * 60 * 1000; // refresh every 5 minutes
+
+async function fetchCaltransChainControl() {
+  const now = Date.now();
+  if(caltransData && (now - caltransFetchTime) < CALTRANS_CACHE_MS) return caltransData;
+  if(caltransFetching) {
+    // Wait for the in-progress fetch
+    while(caltransFetching) await new Promise(r => setTimeout(r, 200));
+    return caltransData;
+  }
+  caltransFetching = true;
+  try {
+    // Fetch the live KML via corsproxy.io (free, supports XML)
+    const CALTRANS_KML = 'https://quickmap.dot.ca.gov/data/cc.kml';
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(CALTRANS_KML);
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const kmlText = await res.text();
+    caltransData = parseCaltransKML(kmlText);
+    caltransFetchTime = Date.now();
+    console.log('[Powder] Caltrans KML loaded:', caltransData.length, 'chain control entries');
+  } catch(e) {
+    console.warn('[Powder] Caltrans fetch failed, using snow-based estimate:', e.message);
+    caltransData = []; // empty = will fall back to estimate
+  }
+  caltransFetching = false;
+  return caltransData;
+}
+
+function parseCaltransKML(kmlText) {
+  const results = [];
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(kmlText, 'text/xml');
+    const placemarks = doc.querySelectorAll('Placemark');
+    placemarks.forEach(pm => {
+      const nameEl = pm.querySelector('n') || pm.querySelector('name');
+      const descEl = pm.querySelector('description');
+      const coordEl = pm.querySelector('coordinates');
+      if(!nameEl || !descEl) return;
+
+      const name = nameEl.textContent.trim();
+      const desc = descEl.textContent.trim();
+      let coords = null;
+      if(coordEl) {
+        const parts = coordEl.textContent.trim().split(',');
+        if(parts.length >= 2) coords = { lng: parseFloat(parts[0]), lat: parseFloat(parts[1]) };
+      }
+
+      // Parse highway from name (e.g. "Eastbound Highway 80 Chain Control")
+      const hwMatch = name.match(/Highway\s+(\d+[A-Z]?|I-\d+)/i) || name.match(/(I-\d+|US-\d+|SR-\d+|HWY\s*\d+)/i);
+      const highway = hwMatch ? normaliseHighway(hwMatch[0]) : null;
+
+      // Determine chain level from name/description
+      let level = 'none';
+      const combined = (name + ' ' + desc).toUpperCase();
+      if(combined.includes('ROAD CLOSED') || combined.includes('CLOSED TO TRAFFIC')) {
+        level = 'closed';
+      } else if(combined.includes('R-3') || combined.includes('REQUIREMENT 3') || combined.includes('ALL VEHICLES') && combined.includes('CHAINS REQUIRED')) {
+        level = 'required';
+      } else if(combined.includes('R-2') || combined.includes('REQUIREMENT 2') || combined.includes('ALL VEHICLES EXCEPT')) {
+        level = 'required';
+      } else if(combined.includes('R-1') || combined.includes('REQUIREMENT 1') || combined.includes('CHAINS REQUIRED')) {
+        level = 'required';
+      } else if(combined.includes('CHAIN') || combined.includes('TRACTION')) {
+        level = 'advisory';
+      }
+
+      if(level !== 'none') {
+        // Extract a clean location label from description HTML
+        const locMatch = desc.match(/<p[^>]*>([^<]{3,60})<\/p>/i);
+        const location = locMatch ? locMatch[1].trim() : name;
+        results.push({ highway, name, level, location, coords, desc });
+      }
+    });
+  } catch(e) {
+    console.warn('[Powder] KML parse error:', e);
+  }
+  return results;
+}
+
+function normaliseHighway(raw) {
+  if(!raw) return null;
+  const s = raw.toUpperCase().replace(/\s+/g,'').replace('HIGHWAY','');
+  if(s.match(/^80$/)) return 'I-80';
+  if(s.match(/^50$/)) return 'US-50';
+  if(s.match(/^89$/)) return 'SR-89';
+  if(s.match(/^395$/)) return 'HWY 395';
+  if(s.match(/^18$/)) return 'HWY 18';
+  if(s.match(/^I-?80/)) return 'I-80';
+  if(s.match(/^US-?50/)) return 'US-50';
+  if(s.match(/^SR-?89|CA-?89/)) return 'SR-89';
+  return raw.trim();
+}
+
+// Given a CA resort name, find relevant Caltrans entries within ~80km
+function getResortChainStatus(resortName, resortRegion) {
+  if(resortRegion !== 'california' || !caltransData || !caltransData.length) return null;
+
+  const resortCoords = RESORT_COORDS[resortName];
+  if(!resortCoords) return null;
+
+  // Find which highways serve this resort
+  const resortHighways = [];
+  for(const [hwy, resorts] of Object.entries(CA_HIGHWAY_RESORT_MAP)) {
+    if(resorts.includes(resortName)) resortHighways.push(hwy);
+  }
+
+  // Filter Caltrans entries by proximity (within ~80km) OR matching highway
+  const nearby = caltransData.filter(entry => {
+    const highwayMatch = entry.highway && resortHighways.includes(entry.highway);
+    let proximate = false;
+    if(entry.coords) {
+      const dist = haversineKm(resortCoords[0], resortCoords[1], entry.coords.lat, entry.coords.lng);
+      proximate = dist < 80;
+    }
+    return highwayMatch || proximate;
+  });
+
+  if(!nearby.length) return null;
+
+  // Escalate to worst level found
+  const levels = ['closed','required','advisory','none'];
+  let worstLevel = 'none';
+  let worstEntry = null;
+  for(const entry of nearby) {
+    if(levels.indexOf(entry.level) < levels.indexOf(worstLevel)) {
+      worstLevel = entry.level;
+      worstEntry = entry;
+    }
+  }
+
+  return worstLevel === 'none' ? null : { level: worstLevel, entry: worstEntry, count: nearby.length, source: 'caltrans' };
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function estimateDriveTime(distKm, snowfall24h) {
+  const distMi = distKm * 0.621371;
+  let speed = 55;
+  if(snowfall24h >= 8) speed = 35;
+  else if(snowfall24h >= 4) speed = 42;
+  else if(snowfall24h >= 1) speed = 48;
+  const hours = distMi / speed;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return { hours, distMi: Math.round(distMi), display: h > 0 ? `${h}h ${m}m` : `${m}m` };
+}
+
+// Fallback: estimate chain status from snowfall when Caltrans data unavailable
+function estimateChainLikelihood(snowfall24h, snowfall7day) {
+  if(snowfall24h >= 6 || snowfall7day >= 20) return 'required';
+  if(snowfall24h >= 2 || snowfall7day >= 8)  return 'advisory';
+  return 'none';
+}
+
+async function loadDriveTime(resortName, idx) {
+  if(!userLocation) { requestLocation(); return; }
+  if(driveCache[resortName]) { renderDriveRow(driveCache[resortName], idx, resortName); return; }
+
+  const dtEl = document.getElementById('dt-'+idx);
+  if(dtEl) dtEl.innerHTML = '<span class="drive-loading">calculating…</span>';
+
+  const coords = RESORT_COORDS[resortName];
+  const resort = allData.find(r=>r.name===resortName);
+  if(!coords || !resort) return;
+
+  const distKm = haversineKm(userLocation.lat, userLocation.lng, coords[0], coords[1]);
+  const driveEst = estimateDriveTime(distKm, resort.new_24h||0);
+  const regionInfo = CHAIN_REGIONS[resort.region] || { highway: 'mountain roads', agency: 'local DOT' };
+
+  // ── REAL CALTRANS DATA for CA resorts ──
+  let chain = estimateChainLikelihood(resort.new_24h||0, resort.new_7day||0);
+  let chainSource = 'estimate';
+  let chainDetail = null;
+  if(resort.region === 'california') {
+    await fetchCaltransChainControl(); // fetch/use cache
+    const liveStatus = getResortChainStatus(resortName, resort.region);
+    if(liveStatus) {
+      chain = liveStatus.level === 'closed' ? 'required' : liveStatus.level;
+      chainSource = 'caltrans';
+      chainDetail = liveStatus.entry;
+    } else if(caltransData && caltransData.length > 0) {
+      // Caltrans loaded but no controls near this resort = clear
+      chain = 'none';
+      chainSource = 'caltrans';
+    }
+  }
+
+  // Get AI verdict from Claude
+  let verdict = null;
+  const cacheKey = resortName + '_verdict';
+  if(!driveCache[cacheKey]) {
+    try {
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6', max_tokens: 400,
+          messages: [{ role: 'user', content:
+            `Quick ski-day decision. Resort: ${resortName} (${resort.state}). ` +
+            `Drive: ~${driveEst.distMi} miles, est. ${driveEst.display} in current conditions. ` +
+            `Base: ${resort.base_inches||0}" | Overnight snow: ${resort.new_24h||0}" | 7-day: ${resort.new_7day||0}" | Condition: ${resort.condition||'packed'} | ` +
+            `Lifts: ${resort.lifts_open||0}/${resort.lifts_total||0} | Trails: ${resort.trails_open||0}/${resort.trails_total||0} | ` +
+            `Summit temp: ${resort.summit_temp_f||28}F | ` +
+            `Chain control on ${regionInfo.highway}: ${chain}${chainSource==='caltrans'?' (LIVE Caltrans data)':' (estimated from snowfall)'}` +
+            `${chainDetail?' — '+chainDetail.location:''}. ` +
+            `Return ONLY JSON (no markdown): {"verdict":"strong yes"|"yes"|"borderline"|"probably not","headline":"one punchy sentence","pros":["max 2, very short"],"cons":["max 2, very short"],"tip":"one practical sentence about road/chain conditions"}`
+          }]
+        })
+      });
+      const d = await res.json();
+      verdict = JSON.parse(d.content[0].text.replace(/\`\`\`json|\`\`\`/g,'').trim());
+      driveCache[cacheKey] = verdict;
+    } catch(e) {
+      // Fallback verdict based on data
+      const score = (resort.new_24h||0)*3 + (resort.base_inches||0)*0.2 + ((resort.lifts_open||0)/(resort.lifts_total||1))*20;
+      const v = score > 25 ? 'strong yes' : score > 15 ? 'yes' : score > 8 ? 'borderline' : 'probably not';
+      verdict = {
+        verdict: v,
+        headline: v === 'strong yes' ? 'Prime conditions. Go.' : v === 'yes' ? 'Solid day on the mountain.' : v === 'borderline' ? 'Marginal — depends on your standards.' : 'Better days ahead.',
+        pros: [`${resort.new_24h||0}" overnight`, `${resort.lifts_open||0} lifts running`],
+        cons: chain === 'required' ? ['Chains required', `${resort.trails_total-(resort.trails_open||0)} trails closed`] : [`${resort.trails_total-(resort.trails_open||0)} trails closed`],
+        tip: `Check ${regionInfo.agency} for current road conditions on ${regionInfo.highway}.`
+      };
+      driveCache[cacheKey] = verdict;
+    }
+  } else {
+    verdict = driveCache[cacheKey];
+  }
+
+  driveCache[resortName] = { time: driveEst, chain, chainSource, chainDetail, verdict, regionInfo };
+  renderDriveRow(driveCache[resortName], idx, resortName);
+}
+
+function renderDriveRow(data, idx, resortName) {
+  const dtEl = document.getElementById('dt-'+idx);
+  const dcEl = document.getElementById('dc-'+idx);
+  const dvEl = document.getElementById('dv-'+idx);
+  const drEl = document.getElementById('dr-'+idx);
+
+  if(dtEl) {
+    const cityLabel = userLocation?.city ? 'from ' + userLocation.city : 'from your location';
+    dtEl.textContent = data.time.display;
+    // Update sublabel
+    const sublabel = dtEl.parentElement?.querySelector('.drive-sublabel');
+    if(sublabel) sublabel.textContent = cityLabel + ' · ' + data.time.distMi + ' mi';
+  }
+
+  if(dcEl) {
+    const chainClass = `chain-${data.chain.replace(' ','-')}`;
+    const chainLabel = data.chain === 'required' ? '⛓ Chains req.' : data.chain === 'advisory' ? '⚠ Chain advisory' : '✓ No chains';
+    const isLive = data.chainSource === 'caltrans';
+    const liveBadge = isLive
+      ? `<span style="font-size:.48rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:.1rem .3rem;border-radius:4px;margin-left:.3rem">LIVE</span>`
+      : `<span style="font-size:.48rem;color:var(--steel);margin-left:.3rem">est.</span>`;
+    const locationLine = (isLive && data.chainDetail?.location)
+      ? `<div style="font-size:.55rem;color:var(--slate);margin-top:.18rem;max-width:120px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${data.chainDetail.location}">${data.chainDetail.location}</div>`
+      : '';
+    dcEl.innerHTML = `<div style="text-align:right"><div style="display:flex;align-items:center;justify-content:flex-end"><span class="drive-chain ${chainClass}">${chainLabel}</span>${liveBadge}</div>${locationLine}</div>`;
+  }
+
+  if(data.verdict && dvEl) {
+    const v = data.verdict;
+    const vKey = (v.verdict||'borderline').replace(/\s+/g,'-');
+    const vClass = `verdict-${vKey}`;
+    dvEl.style.display = 'block';
+    dvEl.innerHTML = `
+      <div class="verdict-head">
+        <span class="verdict-badge ${vClass}">${v.verdict||'borderline'}</span>
+        <span class="verdict-headline">${v.headline||''}</span>
+      </div>
+      <div class="verdict-details">
+        <div>
+          <div class="verdict-col-label">Pros</div>
+          ${(v.pros||[]).map(p=>`<div class="verdict-item">${p}</div>`).join('')}
+        </div>
+        <div>
+          <div class="verdict-col-label">Cons</div>
+          ${(v.cons||[]).map(c=>`<div class="verdict-item">${c}</div>`).join('')}
+        </div>
+      </div>
+      ${v.tip?`<div class="verdict-tip">💡 ${v.tip}</div>`:''}
+      ${data.chainSource==='caltrans'
+        ? `<div style="display:flex;align-items:center;justify-content:space-between;padding-top:.3rem;margin-top:.25rem;border-top:1px solid var(--pale)"><span style="font-size:.52rem;color:var(--steel)">⚡ Chain data: Caltrans QuickMap (live)</span><a href="https://quickmap.dot.ca.gov/" target="_blank" style="font-size:.52rem;color:var(--blue);text-decoration:none;font-weight:500">Open map ↗</a></div>`
+        : `<div style="font-size:.52rem;color:var(--steel);padding-top:.3rem;margin-top:.25rem;border-top:1px solid var(--pale)">Chain estimate based on snowfall · <a href="${data.regionInfo?.agency==='Caltrans'?'https://quickmap.dot.ca.gov/':'https://www.google.com/search?q='+encodeURIComponent((data.regionInfo?.agency||'DOT')+' chain control')}" target="_blank" style="color:var(--blue)">Check ${data.regionInfo?.agency||'DOT'} ↗</a></div>`
+      }`;
+  }
+
+  // Add "see verdict" button if not already showing
+  if(drEl && data.verdict && dvEl) {
+    const existing = drEl.querySelector('.drive-load-btn');
+    if(existing) existing.remove();
+  }
+}
+
+// Auto-load drive times for visible cards after location is set
+function loadAllDriveTimes() {
+  if(!userLocation) return;
+  allData.forEach((r, i) => {
+    const regions = allData.map(x=>x.region||'x');
+    // find the card idx for this resort
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      const nameEl = card.querySelector('.rname');
+      if(!nameEl) return;
+      const name = nameEl.textContent.replace(/🏆.*/, '').trim();
+      if(name !== r.name) return;
+      // find the drive row idx
+      const drEl = card.querySelector('[id^="dr-"]');
+      if(!drEl) return;
+      const idx = drEl.id.replace('dr-','');
+      loadDriveTime(r.name, idx);
+    });
+  });
+}
+
+// ─── INIT ───
+updateProState();
+loadAll();
+
+// Auto-prompt for location after a short delay
+setTimeout(() => {
+  if(!userLocation && !locationRequested) {
+    const banner = document.getElementById('locationBanner');
+    if(banner) banner.style.display = 'flex';
+  }
+}, 2000);
+
+function updateProState() {
+  if(isPro) {
+    document.getElementById('navAvatar').textContent='⭐';
+    const badge=document.querySelector('.nav-pro-badge');
+    if(badge){badge.textContent='Pro ✦';badge.style.background='linear-gradient(135deg,#7c3aed,#a855f7)';}
+  } else {
+    document.getElementById('navAvatar').textContent = currentUser ? '👤' : '👤';
+    const badge=document.querySelector('.nav-pro-badge');
+    if(badge){badge.textContent='Go Pro';badge.style.background='';}
+  }
+}
+
+checkSession();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -o \"powder app html.zip\" -d .)",
+      "WebSearch",
+      "Bash(npm --version)",
+      "Bash(node --check \"C:/Users/jacks/OneDrive/powder app/public/powder-app.html\")",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell -Command ' *)",
+      "Bash(npm install *)",
+      "Bash(git --version)"
+    ]
+  }
+}
