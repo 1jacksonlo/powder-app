@@ -686,7 +686,7 @@ body{background:var(--off);color:var(--ink);font-family:'DM Sans',sans-serif;fon
 // ─── STATE ───
 let allData = [], activeRegion = 'all', searchTerm = '';
 let watchlist = JSON.parse(localStorage.getItem('powder_watchlist') || '[]');
-let isPro = false;
+let isPro = localStorage.getItem('powder_ispro') === 'true'; // restore instantly from cache
 let currentUser = null;
 let authToken = localStorage.getItem('powder_token') || null;
 let sortMode = 'base'; // base | fresh | name
@@ -814,6 +814,8 @@ async function submitAuth() {
     authToken = data.token;
     currentUser = data.user;
     localStorage.setItem('powder_token', authToken);
+    if(data.user?.is_pro) localStorage.setItem('powder_ispro', 'true');
+    else localStorage.removeItem('powder_ispro');
     closeAuthModal();
     applyUserState();
   } catch(e) {
@@ -829,6 +831,7 @@ function signOut() {
   currentUser = null;
   isPro = false;
   localStorage.removeItem('powder_token');
+  localStorage.removeItem('powder_ispro');
   updateProState();
   document.getElementById('navAvatar').textContent = '👤';
   applyFilters();
@@ -837,6 +840,8 @@ function signOut() {
 function applyUserState() {
   if(!currentUser) return;
   isPro = currentUser.is_pro;
+  if(isPro) localStorage.setItem('powder_ispro', 'true');
+  else localStorage.removeItem('powder_ispro');
   updateProState();
   applyFilters();
 }
