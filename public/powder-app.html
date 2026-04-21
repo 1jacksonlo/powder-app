@@ -496,8 +496,9 @@ body{background:var(--off);color:var(--ink);font-family:'DM Sans',sans-serif;fon
 <nav class="topnav">
   <div class="nav-logo"><span class="flake">❄</span> powder</div>
   <div class="nav-right">
-    <div class="nav-pro-badge" onclick="openModal()">Go Pro</div>
-    <div class="nav-avatar" id="navAvatar">👤</div>
+    <button id="navSignIn" onclick="openAuthModal('login')" style="display:none;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;background:none;border:1.5px solid var(--blue);color:var(--blue);padding:.3rem .8rem;border-radius:100px;cursor:pointer">Sign In</button>
+    <div class="nav-pro-badge" id="navProBadge" onclick="openModal()">Go Pro</div>
+    <div class="nav-avatar" id="navAvatar" onclick="currentUser ? signOut() : openAuthModal('login')" title="Sign in / out">👤</div>
   </div>
 </nav>
 
@@ -2862,14 +2863,21 @@ setTimeout(() => {
 }, 2000);
 
 function updateProState() {
+  const signInBtn = document.getElementById('navSignIn');
+  const badge = document.getElementById('navProBadge');
+  const avatar = document.getElementById('navAvatar');
   if(isPro) {
-    document.getElementById('navAvatar').textContent='⭐';
-    const badge=document.querySelector('.nav-pro-badge');
-    if(badge){badge.textContent='Pro ✦';badge.style.background='linear-gradient(135deg,#7c3aed,#a855f7)';}
+    if(avatar) avatar.textContent = '⭐';
+    if(badge) { badge.textContent='Pro ✦'; badge.style.background='linear-gradient(135deg,#7c3aed,#a855f7)'; badge.style.display=''; }
+    if(signInBtn) signInBtn.style.display = 'none';
+  } else if(currentUser) {
+    if(avatar) avatar.textContent = '👤';
+    if(badge) { badge.textContent='Go Pro'; badge.style.background=''; badge.style.display=''; }
+    if(signInBtn) signInBtn.style.display = 'none';
   } else {
-    document.getElementById('navAvatar').textContent = currentUser ? '👤' : '👤';
-    const badge=document.querySelector('.nav-pro-badge');
-    if(badge){badge.textContent='Go Pro';badge.style.background='';}
+    if(avatar) avatar.textContent = '👤';
+    if(badge) badge.style.display = 'none';
+    if(signInBtn) signInBtn.style.display = '';
   }
 }
 
