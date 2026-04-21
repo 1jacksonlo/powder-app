@@ -2868,14 +2868,22 @@ function updateProState() {
   const badge = document.getElementById('navProBadge');
   const avatar = document.getElementById('navAvatar');
   if(isPro) {
+    // Logged in as Pro
     if(avatar) avatar.textContent = '⭐';
     if(badge) { badge.textContent='Pro ✦'; badge.style.background='linear-gradient(135deg,#7c3aed,#a855f7)'; badge.style.display=''; }
     if(signInBtn) signInBtn.style.display = 'none';
   } else if(currentUser) {
+    // Logged in, not Pro
     if(avatar) avatar.textContent = '👤';
     if(badge) { badge.textContent='Go Pro'; badge.style.background=''; badge.style.display=''; }
     if(signInBtn) signInBtn.style.display = 'none';
+  } else if(authToken) {
+    // Token exists but session not confirmed yet — show Pro state optimistically to avoid flash
+    if(avatar) avatar.textContent = '⭐';
+    if(badge) { badge.textContent='Pro ✦'; badge.style.background='linear-gradient(135deg,#7c3aed,#a855f7)'; badge.style.display=''; }
+    if(signInBtn) signInBtn.style.display = 'none';
   } else {
+    // Definitely logged out
     if(avatar) avatar.textContent = '👤';
     if(badge) badge.style.display = 'none';
     if(signInBtn) signInBtn.style.display = '';
