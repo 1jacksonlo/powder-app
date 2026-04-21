@@ -499,7 +499,7 @@ body{background:var(--off);color:var(--ink);font-family:'DM Sans',sans-serif;fon
   <div class="nav-right">
     <button id="navSignIn" onclick="openAuthModal('login')" style="display:none;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;background:none;border:1.5px solid var(--blue);color:var(--blue);padding:.3rem .8rem;border-radius:100px;cursor:pointer">Sign In</button>
     <div class="nav-pro-badge" id="navProBadge" onclick="openModal()">Go Pro</div>
-    <div class="nav-avatar" id="navAvatar" onclick="currentUser ? signOut() : openAuthModal('login')" title="Sign in / out">👤</div>
+    <div class="nav-avatar" id="navAvatar" onclick="authToken ? signOut() : openAuthModal('login')" title="Sign in / out">👤</div>
   </div>
 </nav>
 
