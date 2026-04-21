@@ -829,14 +829,14 @@ function signOut() {
   localStorage.removeItem('powder_token');
   updateProState();
   document.getElementById('navAvatar').textContent = '👤';
-  renderConditions();
+  applyFilters();
 }
 
 function applyUserState() {
   if(!currentUser) return;
   isPro = currentUser.is_pro;
   updateProState();
-  renderConditions();
+  applyFilters();
 }
 
 async function checkSession() {
