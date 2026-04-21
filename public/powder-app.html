@@ -26,7 +26,8 @@ body{background:var(--off);color:var(--ink);font-family:'DM Sans',sans-serif;fon
 .nav-logo .flake{color:var(--blue);font-size:1rem}
 .nav-right{display:flex;align-items:center;gap:.75rem}
 .nav-pro-badge{font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--pro);color:#fff;padding:.2rem .55rem;border-radius:100px;cursor:pointer}
-.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--pale);border:1px solid var(--mist);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:var(--slate)}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--mist);border:1.5px solid #c5cdd9;display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:pointer;color:var(--slate);transition:background .15s}
+.nav-avatar:hover{background:#ccd3de}
 
 /* ─── BOTTOM NAV ─── */
 .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:var(--bottom-h);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--pale);display:flex;align-items:stretch;padding:0 .5rem;padding-bottom:env(safe-area-inset-bottom)}
