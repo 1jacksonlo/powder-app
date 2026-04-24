@@ -19,15 +19,19 @@ const RESORT_SNOTEL = {
 
 // Fetch snow depth from all SNOTEL stations in one batch request
 async function fetchAllSnotel() {
-  const today = new Date().toISOString().split('T')[0];
+  // Use yesterday — today's SNOTEL data may not be published yet
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const dateStr = d.toISOString().split('T')[0];
+
   const uniqueStations = [...new Set(Object.values(RESORT_SNOTEL))].join(',');
 
   try {
+    // Simpler URL without extra params — more compatible
     const url = `https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stationData` +
       `?stationTriplets=${uniqueStations}` +
       `&elements=SNWD` +
-      `&beginDate=${today}&endDate=${today}` +
-      `&periodRef=END&duration=DAY&granularity=DAILY`;
+      `&beginDate=${dateStr}&endDate=${dateStr}`;
 
     const res = await fetch(url, {
       headers: { 'Accept': 'application/json', 'User-Agent': 'PowderApp/1.0' },
@@ -40,19 +44,40 @@ async function fetchAllSnotel() {
 
     for (const station of (data || [])) {
       const triplet = station.stationTriplet;
-      const snwdEntry = station.data?.find(d => d.elementCd === 'SNWD');
-      const val = snwdEntry?.values?.[0];
-      if (val !== null && val !== undefined && !isNaN(val) && val > 0) {
+      // Handle different response shapes
+      const snwdEntry = station.data?.find?.(d => d.elementCd === 'SNWD') || station.data?.[0];
+      const val = snwdEntry?.values?.[0] ?? snwdEntry?.value ?? null;
+      if (val !== null && val !== undefined && !isNaN(val) && val >= 0) {
         result[triplet] = Math.round(val);
       }
     }
 
-    console.log('SNOTEL data fetched:', result);
+    console.log('SNOTEL result:', result);
     return result;
   } catch (e) {
     console.error('SNOTEL fetch failed:', e.message);
     return {};
   }
+}
+
+// Fallback: scrape base depth directly from HTML for resorts whose scrapers work
+async function scrapeBaseDepth(url) {
+  try {
+    const html = await fetchHtml(url);
+    const $ = cheerio.load(html);
+    const text = $('body').text();
+    const patterns = [
+      /(\d+)["\s]*(?:inches?|in|")\s*(?:of\s+)?base/i,
+      /base\s*(?:depth|snow)?\s*:?\s*(\d+)/i,
+      /(\d+)["']?\s*base\s*depth/i,
+      /(\d+)\s*(?:"|inches?)\s*(?:base|summit)/i,
+    ];
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m && parseInt(m[1]) > 0 && parseInt(m[1]) < 300) return parseInt(m[1]);
+    }
+    return null;
+  } catch { return null; }
 }
 
 // ─── HTML HELPERS ─────────────────────────────────────────────────────────────
@@ -234,9 +259,27 @@ async function scrapeAll() {
     { name: 'Diamond Peak',         ops: diamondOps },
   ];
 
+  // HTML base depth fallbacks for resorts whose pages parse cleanly
+  const htmlBaseUrls = {
+    'Mt. Rose':        'https://skirose.com/snow-report/',
+    'Sierra-at-Tahoe': 'https://www.sierraattahoe.com/conditions',
+    'Diamond Peak':    'https://www.diamondpeak.com/mountain/snow-report',
+    'Sugar Bowl':      'https://www.sugarbowl.com/conditions',
+    'Donner Ski Ranch':'https://www.donnerskiranch.com/ski-report/',
+  };
+  const htmlBases = {};
+  await Promise.all(
+    Object.entries(htmlBaseUrls).map(async ([name, url]) => {
+      htmlBases[name] = await scrapeBaseDepth(url);
+    })
+  );
+
   return resorts.map(({ name, ops }) => {
     const stationId = RESORT_SNOTEL[name];
-    const base_inches = stationId ? (snotelData[stationId] ?? null) : null;
+    const snotelBase = stationId ? (snotelData[stationId] ?? null) : null;
+    const htmlBase = htmlBases[name] ?? null;
+    // Prefer SNOTEL (sensor data), fall back to HTML scrape
+    const base_inches = snotelBase ?? htmlBase;
     return {
       name,
       status: ops.status || 'partial',
