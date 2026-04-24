@@ -27,13 +27,15 @@ const RESORT_SNOTEL = {
 // Fetch snow depth for a single SNOTEL station using the CSV report generator.
 // URL format confirmed working: returns CSV with Date, Station Name, SNWD columns.
 async function fetchSnotelStation(triplet) {
-  const encoded = encodeURIComponent(triplet);
-  const url = `https://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customSingleStationReport/daily/start_of_period/${triplet}|id=%22%22|name/-5,0/SNWD::value`;
+  const url = `https://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customSingleStationReport/daily/start_of_period/${triplet}%7Cid%3D%22%22%7Cname/-5,0/SNWD::value`;
 
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'PowderApp/1.0', 'Accept': 'text/csv,text/plain,*/*' },
-      signal: AbortSignal.timeout(12000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/csv,text/plain,*/*',
+      },
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
@@ -48,21 +50,22 @@ async function fetchSnotelStation(triplet) {
     const lines = text.split('\n').filter(l => l.trim() && !l.startsWith('#'));
     // lines[0] is the header row (Date, Station Name, Snow Depth...)
     const dataLines = lines.slice(1).filter(l => l.trim());
-    if (dataLines.length === 0) return null;
+    if (dataLines.length === 0) return { val: null, debug: `no data lines. raw: ${text.slice(0, 200)}` };
 
     // Take the last data row (most recent date)
     const lastLine = dataLines[dataLines.length - 1];
     const parts = lastLine.split(',');
     // parts[2] is the SNWD value (may be quoted or empty)
     const rawVal = parts[2]?.replace(/"/g, '').trim();
-    if (!rawVal || rawVal === '' || rawVal.toLowerCase() === 'null') return null;
+    if (!rawVal || rawVal === '' || rawVal.toLowerCase() === 'null') {
+      return { val: null, debug: `empty value. lastLine: ${lastLine}` };
+    }
 
     const val = parseFloat(rawVal);
-    if (isNaN(val) || val < 0) return null;
-    return Math.round(val);
+    if (isNaN(val) || val < 0) return { val: null, debug: `bad val: ${rawVal}` };
+    return { val: Math.round(val), debug: `ok` };
   } catch (e) {
-    console.error(`SNOTEL fetch failed for ${triplet}:`, e.message);
-    return null;
+    return { val: null, debug: `fetch error: ${e.message}` };
   }
 }
 
@@ -71,18 +74,27 @@ async function fetchAllSnotel() {
   const uniqueStations = [...new Set(Object.values(RESORT_SNOTEL))];
 
   const results = await Promise.allSettled(
-    uniqueStations.map(triplet => fetchSnotelStation(triplet).then(val => ({ triplet, val })))
+    uniqueStations.map(triplet =>
+      fetchSnotelStation(triplet).then(result => ({ triplet, ...result }))
+    )
   );
 
   const data = {};
+  const debug = {};
   for (const r of results) {
-    if (r.status === 'fulfilled' && r.value.val !== null) {
-      data[r.value.triplet] = r.value.val;
+    if (r.status === 'fulfilled') {
+      debug[r.value.triplet] = r.value.debug;
+      if (r.value.val !== null) {
+        data[r.value.triplet] = r.value.val;
+      }
+    } else {
+      debug[r.reason] = 'promise rejected';
     }
   }
 
   console.log('SNOTEL result:', data);
-  return data;
+  console.log('SNOTEL debug:', debug);
+  return { data, debug };
 }
 
 // ─── HTML HELPERS ─────────────────────────────────────────────────────────────
@@ -220,7 +232,7 @@ async function scrapeHtmlOps(url) {
 // ─── COMBINE SNOTEL + OPS DATA ────────────────────────────────────────────────
 async function scrapeAll() {
   // 1. Fetch all SNOTEL snow depths in parallel (one request per unique station)
-  const snotelData = await fetchAllSnotel();
+  const { data: snotelData, debug: snotelDebug } = await fetchAllSnotel();
 
   // 2. Fetch ops data (lifts, trails, status) per resort concurrently
   const [
@@ -264,7 +276,7 @@ async function scrapeAll() {
     { name: 'Diamond Peak',         ops: diamondOps },
   ];
 
-  return resorts.map(({ name, ops }) => {
+  const records = resorts.map(({ name, ops }) => {
     const stationId = RESORT_SNOTEL[name];
     const base_inches = stationId ? (snotelData[stationId] ?? null) : null;
     return {
@@ -278,6 +290,8 @@ async function scrapeAll() {
       trails_total: ops.trails_total ?? null,
     };
   });
+
+  return { records, snotelDebug };
 }
 
 // ─── ROUTE ────────────────────────────────────────────────────────────────────
@@ -297,10 +311,10 @@ export async function GET(request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const data = await scrapeAll();
+  const { records, snotelDebug } = await scrapeAll();
   const errors = [];
 
-  for (const resort of data) {
+  for (const resort of records) {
     const { name, ...fields } = resort;
     const { error } = await supabaseAdmin
       .from('resort_conditions')
@@ -311,5 +325,5 @@ export async function GET(request) {
     if (error) errors.push({ resort: name, error: error.message });
   }
 
-  return Response.json({ scraped: data.length, data, errors });
+  return Response.json({ scraped: records.length, data: records, snotel_debug: snotelDebug, errors });
 }
