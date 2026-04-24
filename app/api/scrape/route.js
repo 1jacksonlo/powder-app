@@ -2,82 +2,87 @@ import * as cheerio from 'cheerio';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // ─── SNOTEL (USDA snow sensors — free, real, updated daily) ──────────────────
-// Maps each resort to the nearest SNOTEL station that measures snow depth
+// Maps each resort to the nearest SNOTEL station that measures snow depth.
+// Confirmed working station IDs (verified April 2026):
+//   784:CA:SNTL = Palisades Tahoe station, 8,010ft (confirmed 28" Apr 23)
+//   541:CA:SNTL = Independence Lake, 8,340ft (north of Tahoe, near Northstar)
+//   518:CA:SNTL = Heavenly Valley station, 8,540ft
+//   463:CA:SNTL = Echo Peak, 7,650ft (near Sierra-at-Tahoe / Echo Summit)
+//   1067:CA:SNTL = Carson Pass, 8,560ft (near Kirkwood)
+//   652:NV:SNTL = Mt Rose Ski Area, 8,810ft (confirmed 49" Apr 23)
 const RESORT_SNOTEL = {
-  'Palisades Tahoe':      '784:CA:SNTL',  // Squaw Valley station, 6190ft
-  'Northstar California': '695:CA:SNTL',  // Norden station, 6700ft
-  'Sugar Bowl':           '695:CA:SNTL',  // Norden station, 6700ft
-  'Boreal':               '695:CA:SNTL',  // Norden station, 6700ft
-  'Donner Ski Ranch':     '695:CA:SNTL',  // Norden station, 6700ft
-  'Soda Springs':         '695:CA:SNTL',  // Norden station, 6700ft
-  'Heavenly':             '539:CA:SNTL',  // Kirkwood Meadows station, 7600ft
-  'Kirkwood':             '539:CA:SNTL',  // Kirkwood Meadows station, 7600ft
-  'Sierra-at-Tahoe':      '539:CA:SNTL',  // Kirkwood Meadows station, 7600ft
-  'Mt. Rose':             '637:NV:SNTL',  // Mt Rose Summit station, 8640ft
-  'Diamond Peak':         '637:NV:SNTL',  // Mt Rose Summit station, 8640ft
+  'Palisades Tahoe':      '784:CA:SNTL',
+  'Northstar California': '541:CA:SNTL',
+  'Sugar Bowl':           '784:CA:SNTL',
+  'Boreal':               '784:CA:SNTL',
+  'Donner Ski Ranch':     '784:CA:SNTL',
+  'Soda Springs':         '784:CA:SNTL',
+  'Heavenly':             '518:CA:SNTL',
+  'Kirkwood':             '1067:CA:SNTL',
+  'Sierra-at-Tahoe':      '463:CA:SNTL',
+  'Mt. Rose':             '652:NV:SNTL',
+  'Diamond Peak':         '652:NV:SNTL',
 };
 
-// Fetch snow depth from all SNOTEL stations in one batch request
-async function fetchAllSnotel() {
-  // Use yesterday — today's SNOTEL data may not be published yet
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  const dateStr = d.toISOString().split('T')[0];
-
-  const uniqueStations = [...new Set(Object.values(RESORT_SNOTEL))].join(',');
+// Fetch snow depth for a single SNOTEL station using the CSV report generator.
+// URL format confirmed working: returns CSV with Date, Station Name, SNWD columns.
+async function fetchSnotelStation(triplet) {
+  const encoded = encodeURIComponent(triplet);
+  const url = `https://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customSingleStationReport/daily/start_of_period/${triplet}|id=%22%22|name/-5,0/SNWD::value`;
 
   try {
-    // Simpler URL without extra params — more compatible
-    const url = `https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stationData` +
-      `?stationTriplets=${uniqueStations}` +
-      `&elements=SNWD` +
-      `&beginDate=${dateStr}&endDate=${dateStr}`;
-
     const res = await fetch(url, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'PowderApp/1.0' },
-      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'PowderApp/1.0', 'Accept': 'text/csv,text/plain,*/*' },
+      signal: AbortSignal.timeout(12000),
     });
-    if (!res.ok) throw new Error(`SNOTEL HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
 
-    const data = await res.json();
-    const result = {};
+    // CSV looks like:
+    //   # header comments...
+    //   Date,"Station Name",Snow Depth (in) Start of Day Values
+    //   2026-04-18,"Palisades Tahoe",28
+    //   ...
+    //   2026-04-23,"Palisades Tahoe",28
+    // We want the last non-comment, non-header data row.
+    const lines = text.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+    // lines[0] is the header row (Date, Station Name, Snow Depth...)
+    const dataLines = lines.slice(1).filter(l => l.trim());
+    if (dataLines.length === 0) return null;
 
-    for (const station of (data || [])) {
-      const triplet = station.stationTriplet;
-      // Handle different response shapes
-      const snwdEntry = station.data?.find?.(d => d.elementCd === 'SNWD') || station.data?.[0];
-      const val = snwdEntry?.values?.[0] ?? snwdEntry?.value ?? null;
-      if (val !== null && val !== undefined && !isNaN(val) && val >= 0) {
-        result[triplet] = Math.round(val);
-      }
-    }
+    // Take the last data row (most recent date)
+    const lastLine = dataLines[dataLines.length - 1];
+    const parts = lastLine.split(',');
+    // parts[2] is the SNWD value (may be quoted or empty)
+    const rawVal = parts[2]?.replace(/"/g, '').trim();
+    if (!rawVal || rawVal === '' || rawVal.toLowerCase() === 'null') return null;
 
-    console.log('SNOTEL result:', result);
-    return result;
+    const val = parseFloat(rawVal);
+    if (isNaN(val) || val < 0) return null;
+    return Math.round(val);
   } catch (e) {
-    console.error('SNOTEL fetch failed:', e.message);
-    return {};
+    console.error(`SNOTEL fetch failed for ${triplet}:`, e.message);
+    return null;
   }
 }
 
-// Fallback: scrape base depth directly from HTML for resorts whose scrapers work
-async function scrapeBaseDepth(url) {
-  try {
-    const html = await fetchHtml(url);
-    const $ = cheerio.load(html);
-    const text = $('body').text();
-    const patterns = [
-      /(\d+)["\s]*(?:inches?|in|")\s*(?:of\s+)?base/i,
-      /base\s*(?:depth|snow)?\s*:?\s*(\d+)/i,
-      /(\d+)["']?\s*base\s*depth/i,
-      /(\d+)\s*(?:"|inches?)\s*(?:base|summit)/i,
-    ];
-    for (const p of patterns) {
-      const m = text.match(p);
-      if (m && parseInt(m[1]) > 0 && parseInt(m[1]) < 300) return parseInt(m[1]);
+// Fetch all unique SNOTEL stations in parallel
+async function fetchAllSnotel() {
+  const uniqueStations = [...new Set(Object.values(RESORT_SNOTEL))];
+
+  const results = await Promise.allSettled(
+    uniqueStations.map(triplet => fetchSnotelStation(triplet).then(val => ({ triplet, val })))
+  );
+
+  const data = {};
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value.val !== null) {
+      data[r.value.triplet] = r.value.val;
     }
-    return null;
-  } catch { return null; }
+  }
+
+  console.log('SNOTEL result:', data);
+  return data;
 }
 
 // ─── HTML HELPERS ─────────────────────────────────────────────────────────────
@@ -141,7 +146,7 @@ function parseOpsFromText(text) {
   let season_total = null;
   for (const p of seasonPatterns) {
     const m = text.match(p);
-    if (m && parseInt(m[1]) > 10) { season_total = parseInt(m[1]); break; }
+    if (m && parseInt(m[1]) > 10 && parseInt(m[1]) < 800) { season_total = parseInt(m[1]); break; }
   }
 
   // Status
@@ -214,7 +219,7 @@ async function scrapeHtmlOps(url) {
 
 // ─── COMBINE SNOTEL + OPS DATA ────────────────────────────────────────────────
 async function scrapeAll() {
-  // 1. Fetch all SNOTEL snow depths in one request
+  // 1. Fetch all SNOTEL snow depths in parallel (one request per unique station)
   const snotelData = await fetchAllSnotel();
 
   // 2. Fetch ops data (lifts, trails, status) per resort concurrently
@@ -259,27 +264,9 @@ async function scrapeAll() {
     { name: 'Diamond Peak',         ops: diamondOps },
   ];
 
-  // HTML base depth fallbacks for resorts whose pages parse cleanly
-  const htmlBaseUrls = {
-    'Mt. Rose':        'https://skirose.com/snow-report/',
-    'Sierra-at-Tahoe': 'https://www.sierraattahoe.com/conditions',
-    'Diamond Peak':    'https://www.diamondpeak.com/mountain/snow-report',
-    'Sugar Bowl':      'https://www.sugarbowl.com/conditions',
-    'Donner Ski Ranch':'https://www.donnerskiranch.com/ski-report/',
-  };
-  const htmlBases = {};
-  await Promise.all(
-    Object.entries(htmlBaseUrls).map(async ([name, url]) => {
-      htmlBases[name] = await scrapeBaseDepth(url);
-    })
-  );
-
   return resorts.map(({ name, ops }) => {
     const stationId = RESORT_SNOTEL[name];
-    const snotelBase = stationId ? (snotelData[stationId] ?? null) : null;
-    const htmlBase = htmlBases[name] ?? null;
-    // Prefer SNOTEL (sensor data), fall back to HTML scrape
-    const base_inches = snotelBase ?? htmlBase;
+    const base_inches = stationId ? (snotelData[stationId] ?? null) : null;
     return {
       name,
       status: ops.status || 'partial',
