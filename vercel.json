@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/scrape?secret=powder-scrape-2025",
+      "schedule": "0 15 * * *"
+    }
+  ]
+}
