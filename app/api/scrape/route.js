@@ -55,8 +55,8 @@ async function fetchSnotelStation(triplet) {
     // Take the last data row (most recent date)
     const lastLine = dataLines[dataLines.length - 1];
     const parts = lastLine.split(',');
-    // parts[2] is the SNWD value (may be quoted or empty)
-    const rawVal = parts[2]?.replace(/"/g, '').trim();
+    // parts[1] is the SNWD value (CSV has 2 columns: Date, Value)
+    const rawVal = parts[1]?.replace(/"/g, '').trim();
     if (!rawVal || rawVal === '' || rawVal.toLowerCase() === 'null') {
       return { val: null, debug: `empty value. lastLine: ${lastLine}` };
     }
