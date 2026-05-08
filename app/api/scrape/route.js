@@ -236,9 +236,10 @@ async function scrapeAll() {
   ];
 
   const records = resorts.map(({ name, ops }) => {
-    // Complete scrape failure — got nothing at all from the resort's website/API
+    // Complete scrape failure — got no useful data (no base, no lift counts)
+    // Note: status alone doesn't count — error pages often default to 'partial'
     const hasNoData = ops.base_html == null && ops.lifts_open == null
-                   && ops.trails_open == null && !ops.status;
+                   && ops.trails_open == null;
 
     // Is this resort effectively closed?
     const isEffectivelyClosed =
