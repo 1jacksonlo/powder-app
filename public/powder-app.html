@@ -1041,14 +1041,14 @@ function mergeIntoAllData(opsMap, weatherMap) {
     const wx  = weatherMap[meta.name] || {};
     allData.push({
       ...meta,
-      // ops fields (Claude)
-      status:       ops.status       ?? 'open',
-      base_inches:  ops.base_inches  ?? 50,
-      season_total: ops.season_total ?? 140,
-      lifts_open:   ops.lifts_open   ?? 10,
-      lifts_total:  ops.lifts_total  ?? 18,
-      trails_open:  ops.trails_open  ?? 40,
-      trails_total: ops.trails_total ?? 80,
+      // ops fields (from Supabase scraper)
+      status:       ops.status       ?? 'partial',
+      base_inches:  ops.base_inches  ?? null,
+      season_total: ops.season_total ?? null,
+      lifts_open:   ops.lifts_open   ?? null,
+      lifts_total:  ops.lifts_total  ?? null,
+      trails_open:  ops.trails_open  ?? null,
+      trails_total: ops.trails_total ?? null,
       // weather fields (Open-Meteo — override ops)
       new_24h:        wx.new_24h        ?? ops.new_24h  ?? 0,
       new_7day:       wx.new_7day       ?? ops.new_7day ?? 0,
@@ -1112,10 +1112,7 @@ async function fetchOpsMap() {
       } catch(e) {
         batch.forEach(r => {
           if(!opsMap[r.name]) {
-            opsMap[r.name] = {
-              status:'open', base_inches:55, season_total:140,
-              lifts_open:12, lifts_total:20, trails_open:45, trails_total:80, _source:'fallback'
-            };
+            opsMap[r.name] = { status:'partial', base_inches:null, _source:'fallback' };
           }
         });
       }
@@ -1227,7 +1224,7 @@ async function backgroundRefreshWeather(currentOpsMap) {
 
 function updateStats() {
   if(!allData.length) return;
-  const open=allData.filter(r=>r.status!=='closed').length;
+  const open=allData.filter(r=>!(r.base_inches===0&&(r.lifts_open===0||r.lifts_open===null))).length;
   const avg=Math.round(allData.reduce((s,r)=>s+(r.base_inches||0),0)/allData.length);
   const bestSnow=Math.max(...allData.map(r=>r.new_7day||0));
   const lifts=allData.reduce((s,r)=>s+(r.lifts_open||0),0);
@@ -1283,7 +1280,7 @@ function renderConditions(list) {
     let html='';
     REGION_ORDER.filter(k=>groups[k]).forEach(k=>{
       const rs=groups[k];
-      html+=`<div class="region-sec"><div class="region-hdr"><div class="region-title">${REGION_LABELS[k]||k}</div><div class="region-line"></div><div class="region-ct">${rs.filter(r=>r.status!=='closed').length}/${rs.length} open</div></div><div class="resort-grid">${rs.map((r,i)=>cardHtml(r,i,maxBase,topFresh)).join('')}</div></div>`;
+      html+=`<div class="region-sec"><div class="region-hdr"><div class="region-title">${REGION_LABELS[k]||k}</div><div class="region-line"></div><div class="region-ct">${rs.filter(r=>!(r.base_inches===0&&(r.lifts_open===0||r.lifts_open===null))).length}/${rs.length} open</div></div><div class="resort-grid">${rs.map((r,i)=>cardHtml(r,i,maxBase,topFresh)).join('')}</div></div>`;
     });
     el.innerHTML=html+'<div style="height:2rem"></div>';
   } else {
@@ -1298,9 +1295,12 @@ function cardHtml(r,i,maxBase,topFresh) {
   const isWatched=watchlist.includes(r.name);
   const isBest=topFresh.includes(r.name);
   const idx=`${r.region||'x'}-${i}`;
+  // Determine effective status — override to closed if base=0 and no lifts running
+  const effStatus = (r.base_inches === 0 && (r.lifts_open === 0 || r.lifts_open === null))
+    ? 'closed' : r.status;
   return `
   <div class="card" style="animation-delay:${(i*.03).toFixed(2)}s">
-    <div class="cbar cbar-${r.status}"></div>
+    <div class="cbar cbar-${effStatus}"></div>
     <div class="card-head">
       <div>
         <div class="rname">${r.name} ${isBest&&isPro?'<span class="best-badge">🏆 Best Snow</span>':''}</div>
@@ -1308,7 +1308,7 @@ function cardHtml(r,i,maxBase,topFresh) {
       </div>
       <div style="display:flex;align-items:center;gap:.4rem">
         <button class="heart-btn" onclick="toggleWatch('${r.name}')" title="Save">${isWatched?'❤️':'🤍'}</button>
-        <span class="badge badge-${r.status}"><span class="bdot"></span>${r.status==='open'?'Open':r.status==='partial'?'Partial':'Closed'}</span>
+        <span class="badge badge-${effStatus}"><span class="bdot"></span>${effStatus==='open'?'Open':effStatus==='partial'?'Partial':'Closed'}</span>
       </div>
     </div>
     <div class="sep"></div>
