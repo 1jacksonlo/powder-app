@@ -236,21 +236,26 @@ async function scrapeAll() {
   ];
 
   const records = resorts.map(({ name, ops }) => {
-    // Is this resort effectively closed? (0 lifts AND 0 trails open)
+    // Complete scrape failure — got nothing at all from the resort's website/API
+    const hasNoData = ops.base_html == null && ops.lifts_open == null
+                   && ops.trails_open == null && !ops.status;
+
+    // Is this resort effectively closed?
     const isEffectivelyClosed =
+      hasNoData ||                           // Can't scrape = unknown, default to 0
       ops.status === 'closed' ||
       (ops.lifts_open === 0 && ops.trails_open === 0) ||
       (ops.lifts_open === 0 && ops.trails_open === null && ops.status !== 'open');
 
     // Base depth priority:
     // 1. Resort's own website (most accurate, includes 0" when closed)
-    // 2. 0 if resort is clearly closed and website didn't report
-    // 3. SNOTEL only if resort appears open (alpine sensor fallback)
+    // 2. 0 if resort is closed/unknown (safer than misleading alpine SNOTEL reading)
+    // 3. SNOTEL only if resort has confirmed open lifts (alpine sensor last resort)
     let base_inches;
     if (ops.base_html !== null && ops.base_html !== undefined) {
       base_inches = ops.base_html;           // Resort's own measurement
     } else if (isEffectivelyClosed) {
-      base_inches = 0;                       // Closed = 0" base for skiers
+      base_inches = 0;                       // Closed/unknown = 0" base for skiers
     } else {
       base_inches = snotelData[RESORT_SNOTEL[name]] ?? null; // Open + no website data
     }
